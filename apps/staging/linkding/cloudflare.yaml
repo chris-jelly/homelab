@@ -47,7 +47,7 @@ spec:
           secretName: tunnel-credentials
      #create a config.yaml file from the configMap below
       - name: config
-      configMap:
+        configMap:
           name: cloudflared
           items:
           - key: config.yaml
