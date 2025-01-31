@@ -25,6 +25,9 @@ spec:
         volumeMounts:
         - name: linkding-data
           mountPath: /etc/linkding/data
+
+        securityContext:
+          runAsUser: 33
       volumes:
         - name: linkding-data
           persistentVolumeClaim:
