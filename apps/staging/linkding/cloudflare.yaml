@@ -18,7 +18,7 @@ spec:
           # - Each init container must complete successfully before the next one starts.
       containers:
       - name: cloudflared
-        image: cloudlfare/cloudflared:latest
+        image: cloudflare/cloudflared:latest
         args:
           - tunnel
         # points cloudlfared to the config file, which configures what cloudlfared
