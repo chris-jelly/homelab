@@ -13,8 +13,7 @@ metadata:
   name: external-secrets
   namespace: flux-system
 spec:
-  interval:
-    interval: 10m
-    ref:
-      tag: v0.13.0
-    url: https://github.com/external-secrets/external-secrets
+  interval: 10m
+  ref:
+    tag: v0.13.0
+  url: https://github.com/external-secrets/external-secrets
