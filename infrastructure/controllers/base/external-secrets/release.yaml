@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   releaseName: external-secrets
-  targetNameSpace: external-secrets
+  targetNamespace: external-secrets
   interval: 10m
   chart:
     spec:
