@@ -1,0 +1,1 @@
+/usr/local/bin/mise trust /workspaces/homelab/mise.toml && /usr/local/bin/mise mise install
