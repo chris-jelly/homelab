@@ -1,3 +1,6 @@
 [tools]
 k9s = "latest"
 kubectl = "latest"
+
+[env]
+KUBECONFIG = "./config.yaml"
