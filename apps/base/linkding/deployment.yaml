@@ -24,8 +24,20 @@ spec:
       containers:
       - name: linkding
         image: sissbruecker/linkding:1.37.0
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
         ports:
         - containerPort: 9090
+
+        envFrom:
+          - secretRef:
+              name: linkding-secrets
+              prefix: LD_
 
         volumeMounts:
         - name: linkding-data
