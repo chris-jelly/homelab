@@ -19,6 +19,13 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:latest
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+          requests:
+            cpu: "0.1"
+            memory: "128Mi"
         args:
           - tunnel
         # points cloudlfared to the config file, which configures what cloudlfared
