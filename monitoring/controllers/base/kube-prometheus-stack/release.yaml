@@ -12,11 +12,8 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: kube-prometheus-stack
-        sourceRef:
-          kind: HelmRepository
-          name: kube-prometheus-stack
-          namespace: monitoring
-        interval: 12h
+        namespace: monitoring
+      interval: 12h
   install:
     crds: Create
   upgrade:
