@@ -51,7 +51,10 @@ spec:
       volumes:
       - name: creds
         secret:
-          secretName: linkding-cloudflare-tunnel-credentials
+          secretName: linkding-secrets
+          items:
+          - key: linkding-cloudflare-tunnel-credentials
+            path: credentials.json
      #create a config.yaml file from the configMap below
       - name: config
         configMap:
