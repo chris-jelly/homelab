@@ -1,5 +1,6 @@
 [tools]
 flux2 = "latest"
+helm = "latest"
 k9s = "latest"
 kubectl = "latest"
 
