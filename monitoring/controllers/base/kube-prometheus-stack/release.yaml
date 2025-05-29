@@ -27,6 +27,16 @@ spec:
   values:
     grafana:
       adminPassword: jelly
+      ingress:
+        enabled: true
+        ingressClassName: traefik
+        hosts:
+          - grafana.jellylabs.xyz
+        path: /
+        pathType: Prefix
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          traefik.ingress.kubernetes.io/router.tls: "true"
       
  
  
