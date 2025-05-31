@@ -15,9 +15,9 @@ spec:
               image: renovate/renovate:latest
               args:
                 - chris-jelly/homelab
-                
+
               envFrom:
                 - secretRef:
                     name: github-token
                     key: token
-            restartPolicy: Never
+          restartPolicy: Never
