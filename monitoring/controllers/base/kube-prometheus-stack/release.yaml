@@ -32,7 +32,9 @@ spec:
         ingressClassName: traefik
         hosts:
           - grafana.jellylabs.xyz
-        tls: []
-      
+        tls:
+          - secretName: grafana-dashboard-cert-secret
+            hosts:
+              - grafana.jellylabs.xyz
  
  
