@@ -19,5 +19,5 @@ spec:
               envFrom:
                 - secretRef:
                     name: github-token
-                    key: token
+                    key: RENOVATE_TOKEN
           restartPolicy: Never
