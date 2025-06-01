@@ -23,7 +23,7 @@ spec:
 
       containers:
       - name: linkding
-        image: sissbruecker/linkding:1.37.0
+        image: sissbruecker/linkding:1.40.0
         resources:
           limits:
             cpu: "500m"
