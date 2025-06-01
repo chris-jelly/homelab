@@ -20,4 +20,6 @@ spec:
                 - secretRef:
                     name: github-token
                     key: RENOVATE_TOKEN
+                - configMapRef:
+                    name: renovate-configmap
           restartPolicy: Never
