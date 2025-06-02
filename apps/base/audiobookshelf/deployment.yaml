@@ -15,10 +15,6 @@ spec:
       labels:
         app: audiobookshelf
     spec:
-      securityContext:
-        fsGroup: 1000 # default node user
-        runAsUser: 1000
-        runAsGroup: 1000
 
       containers:
       - name: audiobookshelf
