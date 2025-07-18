@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: warehouse-db-production-cnpg-v1
+spec:
+  description: "Postgres cluster for data engineering airflow/dbt/analytics projects"
+  imageName: ghcr.io/cloudnative-pg/postgresql:13
+  instances: 1
+
+  inheritedMetadata: 
+    labels:
+      app: warehouse-database
+      policy-type: "database"
+    
+  # TODO: Uncomment this when we have the resouces to run kube-prometheus-stack
+  #monitoring:
+    #enabledpodMonitor: true
+  
+  storage: 
+    size: 1Gi
+ 
