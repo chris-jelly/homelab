@@ -2,6 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: warehouse-db-production-cnpg-v1
+  namespace: warehouse
 spec:
   description: "Postgres cluster for data engineering airflow/dbt/analytics projects"
   imageName: ghcr.io/cloudnative-pg/postgresql:13
