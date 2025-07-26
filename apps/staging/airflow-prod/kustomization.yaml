@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: airflow-prod
 
 resources:
-- namespace.yaml
 - ../../base/airflow
 - configmap.yaml
 - salesforce-externalsecret.yaml

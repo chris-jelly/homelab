@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: airflow-dev
-  labels:
-    app.kubernetes.io/name: airflow
-    app.kubernetes.io/instance: airflow-dev
-    app.kubernetes.io/part-of: homelab
