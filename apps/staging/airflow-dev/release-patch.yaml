@@ -1,8 +1,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: airflow-dev
-  namespace: airflow-dev
+  name: airflow
+  namespace: airflow
 spec:
   targetNamespace: airflow-dev
   values:
