@@ -8,5 +8,8 @@ resources:
 - warehouse-externalsecret.yaml
 - certificate.yaml
 
-patchesStrategicMerge:
-- release-patch.yaml
+patches:
+- path: release-patch.yaml
+  target:
+    kind: HelmRelease
+    name: airflow
