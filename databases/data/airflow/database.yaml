@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: airflow-db-production-cnpg-v1
+  namespace: airflow-db
+spec:
+  description: "Postgres cluster for Apache Airflow workflow orchestration"
+  imageName: ghcr.io/cloudnative-pg/postgresql:15
+  instances: 1
+
+  inheritedMetadata: 
+    labels:
+      app: airflow-database
+      policy-type: "database"
+    
+  # TODO: Uncomment this when we have the resources to run kube-prometheus-stack
+  #monitoring:
+    #enabledpodMonitor: true
+  
+  storage: 
+    size: 2Gi
