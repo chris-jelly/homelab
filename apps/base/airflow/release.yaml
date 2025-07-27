@@ -38,14 +38,15 @@ spec:
     postgresql:
       enabled: false
     
-    externalDatabase:
-      type: postgresql
-      host: airflow-db-production-cnpg-v1-rw.airflow-db.svc.cluster.local
-      port: 5432
-      database: app
-      user: app
-      passwordSecret: airflow-db-production-cnpg-v1-app
-      passwordSecretKey: password
+    data:
+      metadataConnection:
+        user: app
+        protocol: postgresql
+        host: airflow-db-production-cnpg-v1-rw.airflow-db.svc.cluster.local
+        port: 5432
+        db: app
+        sslmode: disable
+      metadataSecretName: airflow-db-production-cnpg-v1-app
 
     # Git-sync configuration for DAGs
     dags:
