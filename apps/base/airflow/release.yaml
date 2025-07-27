@@ -40,14 +40,33 @@ spec:
     
     data:
       metadataConnection:
-        user: app
+        user:
+          valueFrom:
+            secretKeyRef:
+              name: airflow-db-production-cnpg-v1-app
+              key: user
+        pass:
+          valueFrom:
+            secretKeyRef:
+              name: airflow-db-production-cnpg-v1-app
+              key: password
         protocol: postgresql
-        host: airflow-db-production-cnpg-v1-rw
-        port: 5432
-        db: app
+        host:
+          valueFrom:
+            secretKeyRef:
+              name: airflow-db-production-cnpg-v1-app
+              key: host
+        port:
+          valueFrom:
+            secretKeyRef:
+              name: airflow-db-production-cnpg-v1-app
+              key: port
+        db:
+          valueFrom:
+            secretKeyRef:
+              name: airflow-db-production-cnpg-v1-app
+              key: dbname
         sslmode: disable
-      metadataSecretName: airflow-db-production-cnpg-v1-app
-      metadataSecretKey: password
 
     # Git-sync configuration for DAGs
     dags:
