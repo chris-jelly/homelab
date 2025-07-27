@@ -7,9 +7,6 @@ spec:
   releaseName: airflow
   targetNamespace: airflow
   interval: 10m
-  dependsOn:
-  - name: airflow-db-production-cnpg-v1
-    namespace: airflow-db
   install:
     remediation:
       retries: 3
