@@ -22,10 +22,11 @@ spec:
         name: airflow
         namespace: flux-system
   values:
+    # Use LocalExecutor since we're on a single-node cluster
+    executor: LocalExecutor
+    
     # Airflow configuration
     airflow:
-      # Use LocalExecutor since we're on a single-node cluster
-      executor: LocalExecutor
       config:
         AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
