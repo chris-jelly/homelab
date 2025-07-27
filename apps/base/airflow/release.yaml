@@ -38,13 +38,15 @@ spec:
     postgresql:
       enabled: false
     
-    # Database connection via environment variable
-    extraEnv: |
-      - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-        valueFrom:
-          secretKeyRef:
-            name: airflow-db-production-cnpg-v1-app
-            key: uri
+    data:
+      metadataConnection:
+        user: PLACEHOLDER_USER
+        pass: PLACEHOLDER_PASS
+        protocol: postgresql
+        host: PLACEHOLDER_HOST
+        port: 5432
+        db: PLACEHOLDER_DB
+        sslmode: disable
 
     # Git-sync configuration for DAGs
     dags:
