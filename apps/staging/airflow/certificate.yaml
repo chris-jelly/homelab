@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: airflow-cert
+  namespace: airflow
+spec:
+  secretName: airflow-cert-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - airflow.jellylabs.xyz

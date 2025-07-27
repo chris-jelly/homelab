@@ -4,5 +4,4 @@ kind: Kustomization
 resources:
   - audiobookshelf
   - linkding
-  - airflow-dev
-  - airflow-prod
+  - airflow
