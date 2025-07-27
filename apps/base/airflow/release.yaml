@@ -74,17 +74,6 @@ spec:
           memory: 1Gi
           cpu: 1000m
 
-    # Ingress configuration moved to top level
-    ingress:
-      web:
-        enabled: true
-        ingressClassName: traefik
-        hosts:
-          - name: airflow.jellylabs.xyz
-            tls:
-              enabled: true
-              secretName: airflow-cert-secret
-    
     # Inject secrets via environment variables
     extraEnvFrom: |
       - secretRef:
@@ -102,6 +91,16 @@ spec:
       # Default admin user disabled - will be created via environment variables
       defaultUser:
         enabled: false
+      
+      # Ingress configuration under webserver
+      ingress:
+        enabled: true
+        ingressClassName: traefik
+        hosts:
+          - name: airflow.jellylabs.xyz
+            tls:
+              enabled: true
+              secretName: airflow-cert-secret
 
     # GitOps compatibility - disable Helm hooks for jobs
     createUserJob:
