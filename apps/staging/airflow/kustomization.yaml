@@ -11,6 +11,7 @@ resources:
 - salesforce-externalsecret-dev.yaml
 - warehouse-externalsecret-prod.yaml
 - warehouse-externalsecret-dev.yaml
+- connection-secret-patch.yaml
 - certificate.yaml
 
 patches:
@@ -18,3 +19,15 @@ patches:
   target:
     kind: HelmRelease
     name: airflow
+
+replacements:
+- source:
+    kind: Secret
+    name: airflow-db-production-cnpg-v1-app
+    fieldPath: data.uri
+  targets:
+  - select:
+      kind: Secret
+      name: airflow-metadata-connection
+    fieldPaths:
+    - data.connection

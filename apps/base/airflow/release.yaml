@@ -39,14 +39,7 @@ spec:
       enabled: false
     
     data:
-      metadataConnection:
-        user: app
-        protocol: postgresql
-        host: airflow-db-production-cnpg-v1-rw
-        port: 5432
-        db: app
-        sslmode: disable
-      metadataSecretName: airflow-db-production-cnpg-v1-app
+      metadataSecretName: airflow-metadata-connection
 
     # Git-sync configuration for DAGs
     dags:
