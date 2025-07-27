@@ -15,11 +15,10 @@ spec:
         - configMapRef:
             name: warehouse-db-config
     
-    webserver:
-      ingress:
-        web:
-          hosts:
-            - name: airflow-prod.jellylabs.xyz
-              tls:
-                enabled: true
-                secretName: airflow-prod-cert-secret
+    ingress:
+      web:
+        hosts:
+          - name: airflow-prod.jellylabs.xyz
+            tls:
+              enabled: true
+              secretName: airflow-prod-cert-secret
