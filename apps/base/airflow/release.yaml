@@ -42,7 +42,7 @@ spec:
       metadataConnection:
         user: app
         protocol: postgresql
-        host: airflow-db-production-cnpg-v1-rw.airflow-db.svc.cluster.local
+        host: airflow-db-production-cnpg-v1-rw
         port: 5432
         db: app
         sslmode: disable

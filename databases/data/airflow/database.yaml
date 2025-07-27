@@ -2,7 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: airflow-db-production-cnpg-v1
-  namespace: airflow-db
+  namespace: airflow
 spec:
   description: "Postgres cluster for Apache Airflow workflow orchestration"
   imageName: ghcr.io/cloudnative-pg/postgresql:15
