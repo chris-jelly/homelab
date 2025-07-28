@@ -12,6 +12,7 @@ resources:
 - warehouse-externalsecret-prod.yaml
 - warehouse-externalsecret-dev.yaml
 - certificate.yaml
+- database-externalsecret.yaml
 
 patches:
 - path: release-patch.yaml
@@ -19,44 +20,4 @@ patches:
     kind: HelmRelease
     name: airflow
 
-replacements:
-- source:
-    kind: Secret
-    name: airflow-db-production-cnpg-v1-app
-    fieldPath: data.user
-  targets:
-  - select:
-      kind: HelmRelease
-      name: airflow
-    fieldPaths:
-    - spec.values.data.metadataConnection.user
-- source:
-    kind: Secret
-    name: airflow-db-production-cnpg-v1-app
-    fieldPath: data.password
-  targets:
-  - select:
-      kind: HelmRelease
-      name: airflow
-    fieldPaths:
-    - spec.values.data.metadataConnection.pass
-- source:
-    kind: Secret
-    name: airflow-db-production-cnpg-v1-app
-    fieldPath: data.host
-  targets:
-  - select:
-      kind: HelmRelease
-      name: airflow
-    fieldPaths:
-    - spec.values.data.metadataConnection.host
-- source:
-    kind: Secret
-    name: airflow-db-production-cnpg-v1-app
-    fieldPath: data.dbname
-  targets:
-  - select:
-      kind: HelmRelease
-      name: airflow
-    fieldPaths:
-    - spec.values.data.metadataConnection.db
+# Database connection now handled via ExternalSecret -> airflow-metadata secret

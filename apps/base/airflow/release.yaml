@@ -39,14 +39,7 @@ spec:
       enabled: false
     
     data:
-      metadataConnection:
-        user: PLACEHOLDER_USER
-        pass: PLACEHOLDER_PASS
-        protocol: postgresql
-        host: PLACEHOLDER_HOST
-        port: 5432
-        db: PLACEHOLDER_DB
-        sslmode: disable
+      metadataSecretName: airflow-metadata
 
     # Git-sync configuration for DAGs
     dags:
