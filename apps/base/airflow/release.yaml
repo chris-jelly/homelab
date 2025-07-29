@@ -39,7 +39,7 @@ spec:
       enabled: false
     
     data:
-      metadataSecretName: airflow-metadata
+      metadataSecretName: airflow-metadata-connection
 
     # Git-sync configuration for DAGs
     dags:

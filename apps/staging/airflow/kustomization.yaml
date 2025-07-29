@@ -20,4 +20,3 @@ patches:
     kind: HelmRelease
     name: airflow
 
-# Database connection now handled via ExternalSecret -> airflow-metadata secret
