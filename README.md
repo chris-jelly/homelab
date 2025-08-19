@@ -10,12 +10,35 @@ I started this project primarily to have a place to try new things and learn new
 
 ### Nodes
 
-I currently run my Homelab by way of a Raspberry Pi running the Raspberry Pi OS Lite. I am using a C4 Labs cluster case and a Raspberry Pi 5 8GB with a PoE+ hat. Later, I plan to expand this to a multi-node cluster and swapping the OS to Talos to make provisioning clusters easier.
+<table>
+  <tr>
+    <th>Node Type</th>
+    <th>Hardware</th>
+    <th>RAM</th>
+    <th>Role</th>
+  </tr>
+  <tr>
+    <td>Raspberry Pi 5</td>
+    <td>8GB with PoE+ hat, C4 Labs cluster case</td>
+    <td>8GB</td>
+    <td>Control plane</td>
+  </tr>
+  <tr>
+    <td>Laptop</td>
+    <td>Various Laptops</td>
+    <td>~8-16GB each</td>
+    <td>Worker nodes</td>
+  </tr>
+</table>
 
 
 ### Storage
 
-For the time being I have a 2TB SSD directly attached to the primary node of the cluster. Ideally I would like to get a proper NAS setup, but in the meantime may look to set up unRAID instead.
+For the time being I have a 2TB SSD directly attached to the primary node of the cluster.
+
+In cases where state matters the data will be backed 
+
+ Ideally I would like to get a proper NAS setup, need to explore options more.
 
 ## Applications
 
@@ -27,10 +50,15 @@ For the time being I have a 2TB SSD directly attached to the primary node of the
   <tr>
     <td><a href="https://github.com/advplyr/audiobookshelf">Audiobookshelf</a></td>
     <td>A self-hosted audiobook, podcast, and e-book server. Syncs with Calibre which in turn syncs to my Kobo</td>
-</tr>
+  </tr>
+  <tr>
     <td><a href="https://github.com/sissbruecker/linkding">Linkding</a></td>
     <td>A minimal bookmark manager</td>
+  </tr>
   <tr>
+    <td><a href="https://airflow.apache.org/">Airflow</a></td>
+    <td>Workflow orchestration platform with git-sync for DAG deployment</td>
+  </tr>
 </table>
 
 
