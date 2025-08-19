@@ -34,11 +34,8 @@ I started this project primarily to have a place to try new things and learn new
 
 ### Storage
 
-For the time being I have a 2TB SSD directly attached to the primary node of the cluster.
-
-In cases where state matters the data will be backed 
-
- Ideally I would like to get a proper NAS setup, need to explore options more.
+For the time being this is all running off of the local path provisioner, so whatever storage the nodes have attached.
+Ideally I would like to get a proper NAS setup, need to explore options more. Until I do, any state that matters will need to be backed up to object storage.
 
 ## Applications
 
