@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: airflow-cert-secret
   issuerRef:
-    name: letsencrypt-prod
+    name: internal-ca
     kind: ClusterIssuer
   dnsNames:
   - airflow.jellylabs.xyz
