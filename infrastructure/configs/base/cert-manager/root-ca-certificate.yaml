@@ -1,0 +1,42 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: root-ca-certificate
+  namespace: cert-manager
+spec:
+  # Secret name where the root CA certificate will be stored
+  secretName: root-ca-secret
+  
+  # Self-signed issuer for the root CA
+  issuerRef:
+    name: selfsigned-cluster-issuer
+    kind: ClusterIssuer
+  
+  # Root CA certificate details
+  commonName: "Homelab Internal CA"
+  subject:
+    organizationalUnits:
+      - "Homelab"
+    organizations:
+      - "jellylabs.xyz"
+    countries:
+      - "US"
+  
+  # Mark this certificate as a CA certificate
+  isCA: true
+  
+  # 10 year validity for root CA
+  duration: 87600h # 10 years
+  renewBefore: 8760h # 1 year before expiry
+  
+  # Key algorithm - ECDSA P-384 for modern security
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-cluster-issuer
+spec:
+  selfSigned: {}
