@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: actualbudget
-      version: 3.x
+      version: 1.8.1
       sourceRef:
         kind: HelmRepository
         name: community-charts
