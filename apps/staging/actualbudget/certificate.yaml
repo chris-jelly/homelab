@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: actualbudget-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: internal-ca
     kind: ClusterIssuer
   dnsNames:
   - actualbudget.jellylabs.xyz
