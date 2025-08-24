@@ -36,13 +36,24 @@ spec:
       enabled: true
       size: 20Gi
       storageClass: ""
-      accessMode: ReadWriteOnce
+      accessModes:
+        - ReadWriteOnce
 
     # Security configuration
+    podSecurityContext:
+      fsGroup: 1001
+      fsGroupChangePolicy: "OnRootMismatch"
+    
     securityContext:
-      fsGroup: 1000
-      runAsUser: 1000
-      runAsGroup: 1000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      privileged: false
+      runAsUser: 1001
+      runAsGroup: 1001
 
     # Service configuration (internal only)
     service:
@@ -63,8 +74,3 @@ spec:
           hosts:
             - actualbudget.jellylabs.xyz
 
-    # Standard Kubernetes labels
-    labels:
-      app.kubernetes.io/name: actualbudget
-      app.kubernetes.io/instance: actualbudget
-      app.kubernetes.io/part-of: homelab
