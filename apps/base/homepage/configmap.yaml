@@ -1,0 +1,223 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/instance: homepage
+    app.kubernetes.io/part-of: homelab
+data:
+  settings.yaml: |
+    title: Jellylabs Homelab Dashboard
+    favicon: https://gethomepage.dev/img/icon.svg
+    background: 
+      image: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
+      blur: sm
+      saturate: 50
+      brightness: 50
+      opacity: 50
+    theme: dark
+    color: slate
+    headerStyle: boxed
+    hideVersion: true
+    layout:
+      Cluster:
+        style: row
+        columns: 3
+      Applications:
+        style: row
+        columns: 2
+      Monitoring:
+        style: row
+        columns: 2
+      Infrastructure:
+        style: row
+        columns: 2
+
+  services.yaml: |
+    - Cluster:
+        - Kubernetes:
+            href: https://k9s.io/
+            icon: kubernetes.svg
+            description: Kubernetes cluster management
+            widget:
+              type: kubernetes
+              cluster:
+                show: true
+                cpu: true
+                memory: true
+                showLabel: true
+                label: "cluster"
+              nodes:
+                show: true
+                cpu: true
+                memory: true
+                showLabel: true
+    
+    - Applications:
+        - Audiobookshelf:
+            href: https://audiobookshelf.jellylabs.xyz
+            icon: audiobookshelf.svg
+            description: Self-hosted audiobook and podcast server
+            namespace: audiobookshelf
+            app: audiobookshelf
+        
+        - Linkding:
+            href: https://linkding.jellylabs.xyz
+            icon: linkding.svg
+            description: Minimal bookmark manager
+            namespace: linkding
+            app: linkding
+        
+        - ActualBudget:
+            href: https://actualbudget.jellylabs.xyz
+            icon: actual.svg
+            description: Personal finance management
+            namespace: actualbudget
+            app: actualbudget
+        
+        - Airflow:
+            href: https://airflow.jellylabs.xyz
+            icon: apache-airflow.svg
+            description: Workflow orchestration platform
+            namespace: airflow
+            app: airflow
+    
+    - Monitoring:
+        - Grafana:
+            href: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
+            icon: grafana.svg
+            description: Monitoring dashboards and visualization
+            namespace: monitoring
+            app: grafana
+        
+        - Prometheus:
+            href: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+            icon: prometheus.svg
+            description: Metrics collection and alerting
+            namespace: monitoring
+            app: prometheus
+    
+    - Infrastructure:
+        - Flux:
+            icon: flux-cd.svg
+            description: GitOps continuous delivery
+            widget:
+              type: flux
+              cluster: default
+        
+        - Cert-Manager:
+            icon: cert-manager.svg
+            description: Kubernetes certificate management
+            namespace: cert-manager
+            app: cert-manager
+        
+        - External Secrets:
+            icon: external-secrets.svg
+            description: Secret management from Azure Key Vault
+            namespace: external-secrets
+            app: external-secrets
+        
+        - CloudNative-PG:
+            icon: postgresql.svg
+            description: PostgreSQL operator for databases
+            namespace: cnpg-system
+            app: cnpg-controller-manager
+
+  widgets.yaml: |
+    - logo:
+        icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/icon.svg
+
+    - search:
+        provider: [duckduckgo, google]
+        focus: false
+        target: _blank
+
+    - greeting:
+        text_size: xl
+        text: "Welcome to the Homelab"
+
+    - datetime:
+        text_size: l
+        format:
+          timeStyle: short
+          dateStyle: short
+          hourCycle: h23
+
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "cluster"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+
+    - resources:
+        label: system
+        expanded: true
+        cpu: true
+        cputemp: true
+        memory: true
+        disk: /
+        uptime: true
+
+  bookmarks.yaml: |
+    - Homelab:
+        - Kubernetes Dashboard:
+            - icon: kubernetes.svg
+              href: https://k9s.io/
+        - Flux CD:
+            - icon: flux-cd.svg
+              href: https://fluxcd.io/
+        - Homepage Docs:
+            - icon: homepage.svg
+              href: https://gethomepage.dev/
+    
+    - Documentation:
+        - CloudNative-PG:
+            - icon: postgresql.svg
+              href: https://cloudnative-pg.io/
+        - Cert-Manager:
+            - icon: cert-manager.svg
+              href: https://cert-manager.io/
+        - External Secrets:
+            - icon: external-secrets.svg
+              href: https://external-secrets.io/
+
+  kubernetes.yaml: |
+    mode: cluster
+
+  docker.yaml: |
+    # Docker integration disabled in Kubernetes mode
+
+  custom.css: |
+    /* Custom CSS for homepage styling */
+    .bg-theme-50 {
+      background-color: rgba(15, 23, 42, 0.8) !important;
+    }
+    
+    .backdrop-blur {
+      backdrop-filter: blur(16px);
+    }
+    
+    /* Service tiles styling */
+    .service-tile {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+  custom.js: |
+    // Custom JavaScript for homepage functionality
+    console.log("Homepage custom JavaScript loaded");
+    
+    // Auto-refresh page every 5 minutes to update widgets
+    setTimeout(function(){
+      window.location.reload();
+    }, 300000);
