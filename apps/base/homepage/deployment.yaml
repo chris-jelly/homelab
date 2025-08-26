@@ -63,6 +63,8 @@ spec:
             - name: config
               mountPath: /app/config
               readOnly: true
+            - name: logs
+              mountPath: /app/config/logs
       volumes:
         - name: config
           configMap:
@@ -84,4 +86,6 @@ spec:
                 path: custom.css
               - key: custom.js
                 path: custom.js
+        - name: logs
+          emptyDir: {}
       restartPolicy: Always
