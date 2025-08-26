@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/part-of: homelab
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       app.kubernetes.io/name: homepage
@@ -20,6 +22,9 @@ spec:
         app.kubernetes.io/instance: homepage
     spec:
       serviceAccountName: homepage
+      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -61,30 +66,35 @@ spec:
               memory: 512Mi
           volumeMounts:
             - name: config
-              mountPath: /app/config
+              mountPath: /app/config/settings.yaml
+              subPath: settings.yaml
+            - name: config
+              mountPath: /app/config/services.yaml
+              subPath: services.yaml
+            - name: config
+              mountPath: /app/config/widgets.yaml
+              subPath: widgets.yaml
+            - name: config
+              mountPath: /app/config/bookmarks.yaml
+              subPath: bookmarks.yaml
+            - name: config
+              mountPath: /app/config/kubernetes.yaml
+              subPath: kubernetes.yaml
+            - name: config
+              mountPath: /app/config/docker.yaml
+              subPath: docker.yaml
+            - name: config
+              mountPath: /app/config/custom.css
+              subPath: custom.css
+            - name: config
+              mountPath: /app/config/custom.js
+              subPath: custom.js
             - name: logs
               mountPath: /app/config/logs
       volumes:
         - name: config
           configMap:
             name: homepage-config
-            items:
-              - key: settings.yaml
-                path: settings.yaml
-              - key: services.yaml
-                path: services.yaml
-              - key: widgets.yaml
-                path: widgets.yaml
-              - key: bookmarks.yaml
-                path: bookmarks.yaml
-              - key: kubernetes.yaml
-                path: kubernetes.yaml
-              - key: docker.yaml
-                path: docker.yaml
-              - key: custom.css
-                path: custom.css
-              - key: custom.js
-                path: custom.js
         - name: logs
           emptyDir: {}
       restartPolicy: Always
