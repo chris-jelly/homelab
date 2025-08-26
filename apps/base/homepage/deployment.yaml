@@ -62,7 +62,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /app/config
-              readOnly: true
             - name: logs
               mountPath: /app/config/logs
       volumes:
