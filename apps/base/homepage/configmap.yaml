@@ -82,7 +82,7 @@ data:
             icon: apache-airflow.svg
             description: Workflow orchestration platform
             namespace: airflow
-            app: webserver
+            app: airflow
     
     - Monitoring:
         - Grafana:
@@ -101,11 +101,11 @@ data:
     
     - Infrastructure:
         - Flux:
-            href: https://fluxcd.io/
             icon: flux-cd.svg
             description: GitOps continuous delivery
-            namespace: flux-system
-            app: source-controller
+            widget:
+              type: flux
+              cluster: default
         
         - Cert-Manager:
             icon: cert-manager.svg
@@ -122,8 +122,8 @@ data:
         - CloudNative-PG:
             icon: postgresql.svg
             description: PostgreSQL operator for databases
-            namespace: cloudnative-pg
-            app: cloudnative-pg
+            namespace: cnpg-system
+            app: cnpg-controller-manager
 
   widgets.yaml: |
     - logo:
@@ -136,7 +136,7 @@ data:
 
     - greeting:
         text_size: xl
-        text: "Welcome to the Homelab"
+        text: "JellyLabs inc"
 
     - datetime:
         text_size: l
@@ -164,7 +164,6 @@ data:
         cpu: true
         cputemp: true
         memory: true
-        disk: /
         uptime: true
 
   bookmarks.yaml: |

@@ -4,8 +4,6 @@ metadata:
   name: homepage
   labels:
     app.kubernetes.io/name: homepage
-    app.kubernetes.io/instance: homepage
-    app.kubernetes.io/part-of: homelab
 rules:
   - apiGroups:
       - ""
@@ -17,26 +15,7 @@ rules:
       - get
       - list
   - apiGroups:
-      - ""
-    resources:
-      - pods/log
-    verbs:
-      - get
-      - list
-  - apiGroups:
-      - ""
-    resources:
-      - pods/status
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - get
-      - list
-  - apiGroups:
+      - extensions
       - networking.k8s.io
     resources:
       - ingresses
@@ -44,7 +23,7 @@ rules:
       - get
       - list
   - apiGroups:
-      - traefik.containo.us
+      - traefik.io
     resources:
       - ingressroutes
     verbs:
