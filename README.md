@@ -53,8 +53,16 @@ Ideally I would like to get a proper NAS setup, need to explore options more. Un
     <td>A minimal bookmark manager</td>
   </tr>
   <tr>
+    <td><a href="https://actualbudget.org/">ActualBudget</a></td>
+    <td>Personal finance management application</td>
+  </tr>
+  <tr>
     <td><a href="https://airflow.apache.org/">Airflow</a></td>
     <td>Workflow orchestration platform with git-sync for DAG deployment</td>
+  </tr>
+  <tr>
+    <td><a href="https://gethomepage.dev/">Homepage</a></td>
+    <td>Self-hosted dashboard for monitoring homelab services and infrastructure</td>
   </tr>
 </table>
 
@@ -69,19 +77,44 @@ Tools and services that help run the cluster or deploy applications.
     <th>Description</th>
   </tr>
   <tr>
-    <td><a href="https://cert-manager.io/">Cert Manager</a></td>
-    <td>Certificate management for Kubernetes </td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/renovatebot/renovate">Renovate</a></td>
-    <td>Automated dependency updates</td>
-  </tr>
-  <tr>
     <td><a href="https://fluxcd.io/">Flux CD</a></td>
-    <td>The GitOps toolset I use</td>
+    <td>The GitOps toolset for continuous delivery</td>
+  </tr>
+  <tr>
+    <td><a href="https://cert-manager.io/">Cert-Manager</a></td>
+    <td>Automatic TLS certificate management with Cloudflare DNS</td>
   </tr>
   <tr>
     <td><a href="https://external-secrets.io/latest/">External Secrets Operator</a></td>
-    <td>Used to sync my secrets from Azure Key Vaults to my cluster</td>
+    <td>Secret synchronization from Azure Key Vault to Kubernetes</td>
+  </tr>
+  <tr>
+    <td><a href="https://cloudnative-pg.io/">CloudNative-PG</a></td>
+    <td>PostgreSQL operator for database management</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/renovatebot/renovate">Renovate</a></td>
+    <td>Automated dependency updates via CronJob</td>
+  </tr>
+</table>
+
+## Monitoring
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><a href="https://grafana.com/">Grafana</a></td>
+    <td>Monitoring dashboards and visualization</td>
+  </tr>
+  <tr>
+    <td><a href="https://prometheus.io/">Prometheus</a></td>
+    <td>Metrics collection and alerting</td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/prometheus-operator/kube-prometheus">Kube-Prometheus-Stack</a></td>
+    <td>Complete monitoring stack with Prometheus, Grafana, and Alertmanager</td>
   </tr>
 </table>
