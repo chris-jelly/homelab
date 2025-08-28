@@ -106,14 +106,6 @@ Tools and services that help run the cluster or deploy applications.
     <th>Description</th>
   </tr>
   <tr>
-    <td><a href="https://grafana.com/">Grafana</a></td>
-    <td>Monitoring dashboards and visualization</td>
-  </tr>
-  <tr>
-    <td><a href="https://prometheus.io/">Prometheus</a></td>
-    <td>Metrics collection and alerting</td>
-  </tr>
-  <tr>
     <td><a href="https://github.com/prometheus-operator/kube-prometheus">Kube-Prometheus-Stack</a></td>
     <td>Complete monitoring stack with Prometheus, Grafana, and Alertmanager</td>
   </tr>
