@@ -82,7 +82,7 @@ data:
             icon: apache-airflow.svg
             description: Workflow orchestration platform
             namespace: airflow
-            app: airflow
+            app: webserver
     
     - Monitoring:
         - Grafana:
@@ -101,11 +101,11 @@ data:
     
     - Infrastructure:
         - Flux:
+            href: https://fluxcd.io/
             icon: flux-cd.svg
             description: GitOps continuous delivery
-            widget:
-              type: flux
-              cluster: default
+            namespace: flux-system
+            app: source-controller
         
         - Cert-Manager:
             icon: cert-manager.svg
@@ -122,8 +122,8 @@ data:
         - CloudNative-PG:
             icon: postgresql.svg
             description: PostgreSQL operator for databases
-            namespace: cnpg-system
-            app: cnpg-controller-manager
+            namespace: cloudnative-pg
+            app: cloudnative-pg
 
   widgets.yaml: |
     - logo:
