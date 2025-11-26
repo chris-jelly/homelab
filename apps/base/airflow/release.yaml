@@ -84,12 +84,7 @@ spec:
             tls:
               enabled: true
               secretName: airflow-cert-secret
-    
-    # Inject secrets via environment variables
-    extraEnvFrom: |
-      - secretRef:
-          name: airflow-admin-credentials
-    
+
     webserver:
       resources:
         requests:
@@ -106,7 +101,7 @@ spec:
     # GitOps compatibility - disable Helm hooks for jobs
     createUserJob:
       useHelmHooks: false
-      applyCustomEnv: false
+      applyCustomEnv: true
     
     migrateDatabaseJob:
       useHelmHooks: false

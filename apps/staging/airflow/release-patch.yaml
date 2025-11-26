@@ -8,6 +8,8 @@ spec:
     airflow:
       extraEnvFrom:
         - secretRef:
+            name: airflow-admin-credentials
+        - secretRef:
             name: salesforce-credentials-prod
         - secretRef:
             name: salesforce-credentials-dev
