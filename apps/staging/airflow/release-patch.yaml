@@ -5,21 +5,6 @@ metadata:
   namespace: airflow
 spec:
   values:
-    airflow:
-      extraEnvFrom:
-        - secretRef:
-            name: salesforce-credentials-prod
-        - secretRef:
-            name: salesforce-credentials-dev
-        - secretRef:
-            name: warehouse-db-credentials-prod
-        - secretRef:
-            name: warehouse-db-credentials-dev
-        - configMapRef:
-            name: warehouse-db-config-prod
-        - configMapRef:
-            name: warehouse-db-config-dev
-    
     ingress:
       web:
         hosts:

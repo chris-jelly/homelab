@@ -5,12 +5,8 @@ namespace: airflow
 
 resources:
 - ../../base/airflow
-- configmap-prod.yaml
-- configmap-dev.yaml
-- salesforce-externalsecret-prod.yaml
-- salesforce-externalsecret-dev.yaml
-- warehouse-externalsecret-prod.yaml
-- warehouse-externalsecret-dev.yaml
+- salesforce-credentials-externalsecret.yaml
+- postgres-credentials-externalsecret.yaml
 - certificate.yaml
 - database-externalsecret.yaml
 
