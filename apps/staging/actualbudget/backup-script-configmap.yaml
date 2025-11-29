@@ -17,9 +17,9 @@ data:
     echo "Timestamp: $(date -u +%Y-%m-%d_%H-%M-%S)"
     echo "========================================="
 
-    # Install required tools (tar not included in azure-cli image)
+    # Install required tools (Azure CLI uses Microsoft Azure Linux with tdnf package manager)
     echo "Installing required tools..."
-    apk add --no-cache tar gzip
+    tdnf install -y tar gzip
 
     # Variables
     TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
