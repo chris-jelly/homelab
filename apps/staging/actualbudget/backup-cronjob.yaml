@@ -1,0 +1,89 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: actualbudget-backup
+  namespace: actualbudget
+  labels:
+    app.kubernetes.io/name: actualbudget
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: homelab
+spec:
+  # Weekly schedule: Every Sunday at 3 AM UTC
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: actualbudget
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: Never
+
+          # Security context matching actualbudget app
+          securityContext:
+            fsGroup: 1001
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+
+          containers:
+            - name: backup
+              image: mcr.microsoft.com/azure-cli:latest
+
+              # Environment variables from ConfigMap and Secret
+              envFrom:
+                - configMapRef:
+                    name: actualbudget-backup-config
+                - secretRef:
+                    name: actualbudget-backup-secrets
+
+              # Resource limits
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+
+              # Security context
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: false
+                runAsNonRoot: true
+                privileged: false
+
+              # Volume mounts
+              volumeMounts:
+                - name: actualbudget-data
+                  mountPath: /data
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: backup-temp
+                  mountPath: /tmp
+
+              # Execute the backup script
+              command:
+                - /bin/bash
+                - /scripts/backup.sh
+
+          # Volumes
+          volumes:
+            - name: actualbudget-data
+              persistentVolumeClaim:
+                claimName: actualbudget-data
+            - name: backup-script
+              configMap:
+                name: actualbudget-backup-script
+                defaultMode: 0755
+            - name: backup-temp
+              emptyDir: {}

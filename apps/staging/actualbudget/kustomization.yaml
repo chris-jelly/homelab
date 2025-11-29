@@ -4,3 +4,7 @@ kind: Kustomization
 resources:
   - ../../base/actualbudget
   - certificate.yaml
+  - backup-cronjob.yaml
+  - backup-script-configmap.yaml
+  - backup-config-configmap.yaml
+  - backup-externalsecret.yaml
