@@ -19,7 +19,7 @@ data:
 
     # Install required tools (tar not included in azure-cli image)
     echo "Installing required tools..."
-    apk add --no-cache tar gzip > /dev/null 2>&1
+    apk add --no-cache tar gzip
 
     # Variables
     TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
