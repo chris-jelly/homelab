@@ -23,12 +23,9 @@ spec:
         spec:
           restartPolicy: Never
 
-          # Security context matching actualbudget app
+          # Security context - fsGroup for PVC access
           securityContext:
             fsGroup: 1001
-            runAsUser: 1001
-            runAsGroup: 1001
-            runAsNonRoot: true
 
           containers:
             - name: backup
@@ -50,14 +47,13 @@ spec:
                   memory: "512Mi"
                   cpu: "500m"
 
-              # Security context
+              # Security context - run as root to install tools via apk
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop:
                     - ALL
                 readOnlyRootFilesystem: false
-                runAsNonRoot: true
                 privileged: false
 
               # Volume mounts
