@@ -17,6 +17,10 @@ data:
     echo "Timestamp: $(date -u +%Y-%m-%d_%H-%M-%S)"
     echo "========================================="
 
+    # Install required tools (tar not included in azure-cli image)
+    echo "Installing required tools..."
+    apk add --no-cache tar gzip > /dev/null 2>&1
+
     # Variables
     TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
     BACKUP_FILE="${BACKUP_PREFIX}-${TIMESTAMP}.tar.gz"
