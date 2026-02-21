@@ -102,6 +102,21 @@ spec:
       applyCustomEnv: true
       defaultUser:
         enabled: true
+      # Override default args to read credentials from env vars injected
+      # via extraEnvFrom (airflow-admin-credentials secret) instead of
+      # hardcoded chart defaults
+      args:
+        - "bash"
+        - "-c"
+        - |-
+          exec \
+          airflow users create \
+            -r Admin \
+            -u "${_AIRFLOW_WWW_USER_USERNAME}" \
+            -e "${_AIRFLOW_WWW_USER_EMAIL}" \
+            -f "${_AIRFLOW_WWW_USER_FIRSTNAME}" \
+            -l "${_AIRFLOW_WWW_USER_LASTNAME}" \
+            -p "${_AIRFLOW_WWW_USER_PASSWORD}"
 
     migrateDatabaseJob:
       useHelmHooks: false
