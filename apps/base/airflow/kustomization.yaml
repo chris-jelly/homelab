@@ -4,5 +4,4 @@ kind: Kustomization
 resources:
 - repository.yaml
 - externalsecret.yaml
-- database-connection-secret.yaml
 - release.yaml

@@ -106,11 +106,11 @@ spec:
     # GitOps compatibility - disable Helm hooks for jobs
     createUserJob:
       useHelmHooks: false
-      applyCustomEnv: false
+      applyCustomEnv: true
     
     migrateDatabaseJob:
       useHelmHooks: false
-      applyCustomEnv: false
+      applyCustomEnv: true
 
     # KubernetesExecutor worker pod defaults
     workers:
