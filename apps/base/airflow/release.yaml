@@ -16,7 +16,7 @@ spec:
   chart:
     spec:
       chart: airflow
-      version: 1.15.0
+      version: 1.19.0
       sourceRef:
         kind: HelmRepository
         name: airflow
@@ -30,19 +30,17 @@ spec:
       config:
         AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-        AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
-        AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
         AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
         # KubernetesExecutor configuration
         AIRFLOW__KUBERNETES__NAMESPACE: "airflow"
         AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "True"
         AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE: "False"
         AIRFLOW__KUBERNETES__WORKER_PODS_CREATION_BATCH_SIZE: "5"
-      
+
     # Database configuration for CloudNative-PG
     postgresql:
       enabled: false
-    
+
     data:
       metadataSecretName: airflow-metadata-connection
 
@@ -54,8 +52,6 @@ spec:
         branch: main
         subPath: "dags"
         wait: 60
-        containerName: git-sync
-        uid: 65533
         resources:
           requests:
             memory: 64Mi
@@ -74,23 +70,8 @@ spec:
           memory: 1Gi
           cpu: 1000m
 
-    # Ingress configuration at top level
-    ingress:
-      web:
-        enabled: true
-        ingressClassName: traefik
-        hosts:
-          - name: airflow.jellylabs.xyz
-            tls:
-              enabled: true
-              secretName: airflow-cert-secret
-    
-    # Inject secrets via environment variables
-    extraEnvFrom: |
-      - secretRef:
-          name: airflow-admin-credentials
-    
-    webserver:
+    # Airflow 3: API server replaces webserver
+    apiServer:
       resources:
         requests:
           memory: 1Gi
@@ -98,17 +79,30 @@ spec:
         limits:
           memory: 2Gi
           cpu: 1000m
-      
-      # Default admin user - credentials are overridden by _AIRFLOW_WWW_USER_*
-      # environment variables injected from the airflow-admin-credentials secret
-      defaultUser:
+
+    # Ingress configuration for Airflow 3 API server
+    ingress:
+      apiServer:
         enabled: true
+        ingressClassName: traefik
+        hosts:
+          - name: airflow.jellylabs.xyz
+            tls:
+              enabled: true
+              secretName: airflow-cert-secret
+
+    # Inject secrets via environment variables
+    extraEnvFrom: |
+      - secretRef:
+          name: airflow-admin-credentials
 
     # GitOps compatibility - disable Helm hooks for jobs
     createUserJob:
       useHelmHooks: false
       applyCustomEnv: true
-    
+      defaultUser:
+        enabled: true
+
     migrateDatabaseJob:
       useHelmHooks: false
       applyCustomEnv: true
