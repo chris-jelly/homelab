@@ -11,7 +11,7 @@ All applications and infrastructure components are defined as Kubernetes manifes
 
 The repository follows a layered GitOps structure:
 
-- **apps/**: Application deployments organized by environment (base/staging) with Kustomize overlays
+- **apps/**: Application deployments organized by environment (base/production) with Kustomize overlays
 - **infrastructure/**: Core infrastructure components (cert-manager, external-secrets, cloudnative-pg, renovate)
 - **monitoring/**: Observability stack (kube-prometheus-stack with Grafana/Prometheus)
 - **databases/**: Database configurations using CloudNative-PG operator
