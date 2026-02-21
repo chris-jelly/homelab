@@ -99,9 +99,10 @@ spec:
           memory: 2Gi
           cpu: 1000m
       
-      # Default admin user disabled - will be created via environment variables
+      # Default admin user - credentials are overridden by _AIRFLOW_WWW_USER_*
+      # environment variables injected from the airflow-admin-credentials secret
       defaultUser:
-        enabled: false
+        enabled: true
 
     # GitOps compatibility - disable Helm hooks for jobs
     createUserJob:
