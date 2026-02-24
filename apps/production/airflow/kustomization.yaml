@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
 - ../../base/airflow
 - database-externalsecret.yaml
+- warehouse-access.yaml
 - warehouse-postgres-conn-externalsecret.yaml
 - salesforce-conn-externalsecret.yaml
 - certificate.yaml
