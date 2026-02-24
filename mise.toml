@@ -1,9 +1,11 @@
 [tools]
+azure-cli = { version = "latest", uvx_args = "--prerelease=allow" }
 cloudflared = "latest"
 flux2 = "latest"
 helm = "latest"
 k9s = "latest"
 kubectl = "latest"
+"npm:@salesforce/cli"= "latest"
 
 [env]
 KUBECONFIG = "./config.yaml"

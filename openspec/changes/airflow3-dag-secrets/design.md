@@ -70,23 +70,33 @@ spec:
     creationPolicy: Owner
     template:
       data:
-        AIRFLOW_CONN_SALESFORCE: '{"conn_type": "salesforce", "extra": {"consumer_key": "{{ .consumer_key }}", "consumer_secret": "{{ .consumer_secret }}", "domain": "login"}}'
+        AIRFLOW_CONN_SALESFORCE: |
+          {"conn_type": "salesforce", "login": "airflow-integration@orgfarm-d58c800d67-dev-ed.develop.my.salesforce.com", "extra": {"consumer_key": "{{ .consumer_key }}", "private_key": "{{ .private_key }}", "domain": "login"}}
   data:
   - secretKey: consumer_key
     remoteRef:
       key: app--salesforce-consumer-key--prod
-  - secretKey: consumer_secret
+  - secretKey: private_key
     remoteRef:
-      key: app--salesforce-consumer-secret--prod
+      key: app--salesforce-private-key--prod
 ```
 
-**BLOCKER -- Manual research required before proceeding:** The exact JSON shape depends on which Salesforce auth flow the Airflow provider uses with `consumer_key` + `consumer_secret`. A `refresh_token` or other fields may be needed. The template above represents a provisional shape only. Before the specs and tasks for this change can be finalized, the following must be determined manually:
+**RESOLVED -- Salesforce auth flow determined.** Research into the Airflow Salesforce provider docs and the Salesforce org configuration confirmed the following:
 
-1. Which OAuth flow does the Salesforce Connected App use? (JWT bearer, client credentials, refresh token, password)
-2. What fields does the Airflow `SalesforceHook.get_conn()` method require in the connection `extra` dict for that flow?
-3. Which of those fields already exist in Azure KV (`kv-work-integrations`), and which need to be provisioned?
+1. **Auth flow**: OAuth 2.0 JWT Bearer. This is the only OAuth flow the Airflow `SalesforceHook` supports. The "integrations" External Client App already has `OptionsAllowAdminApprovedUsersOnly: true`, which is the correct policy for JWT bearer.
+2. **Required fields**: The Airflow provider needs `consumer_key`, `private_key`, and `domain` in the connection `extra` dict, plus `login` (username) at the connection level. `consumer_secret` is NOT used in JWT bearer -- the private key signs the JWT assertion instead.
+3. **New Azure KV secret required**: `app--salesforce-private-key--prod` (RSA private key, 2048-bit). The existing `app--salesforce-consumer-secret--prod` is no longer needed for this flow but can remain in KV.
 
-The answers will determine the final ESO template shape, whether new KV secrets are needed, and the exact spec requirements. This design, the specs, and the tasks should be updated once the research is complete.
+**Salesforce org prerequisites** (manual, outside GitOps):
+- Generate RSA key pair (2048-bit, X.509 cert, 365-day validity)
+- Upload public certificate to "integrations" Connected App (via Setup > App Manager > integrations > Edit, not the External Client App UI which doesn't expose the certificate upload field)
+- Create integration user: `Salesforce` license (full), `Read Only` profile, username `airflow-integration@orgfarm-d58c800d67-dev-ed.develop.my.salesforce.com`
+- Populate `Integration_App_Access` permission set with ViewAll on: Account, Contact, Opportunity, Lead, Case, Campaign; Read on: Product2, Pricebook2 (ViewAll not permitted on these objects). OpportunityHistory, PricebookEntry, and User are not directly permissionable (OpportunityHistory inherits from Opportunity, PricebookEntry from Pricebook2, User is readable by all internal users).
+- Assign permission set to integration user (pre-authorizes for Connected App)
+- Store RSA private key in Azure KV as `app--salesforce-private-key--prod`
+- Verify with: `sf org login jwt --client-id <consumer_key> --jwt-key-file <key> --username airflow-integration@orgfarm-d58c800d67-dev-ed.develop.my.salesforce.com --instance-url https://orgfarm-d58c800d67-dev-ed.develop.my.salesforce.com`
+
+**License change from original plan:** The `Salesforce Integration` license was initially chosen for least-privilege API-only access. However, this license does not permit access to standard CRM objects (Account, Contact, Opportunity, Lead, Case, Campaign). Since the extraction DAG needs to read these objects, the integration user was switched to a full `Salesforce` license with the `Read Only` profile. This consumes 1 of the org's 4 full Salesforce licenses (2 were previously used by admin accounts, leaving 1 remaining after this change). The `Read Only` profile provides base read access to all standard objects; the `Integration_App_Access` permission set adds ViewAll where permitted to ensure org-wide visibility regardless of record ownership.
 
 **Alternative considered:** Airflow AzureKeyVaultBackend as a native secrets backend. Rejected because: (1) it accepts a single `vault_url` and cannot span two vaults, (2) it gives the scheduler and API server access to all connection credentials (violating pod-level isolation), (3) connection URIs must be pre-composed and stored manually in KV, (4) connections move outside GitOps visibility.
 
@@ -114,8 +124,7 @@ This avoids a big-bang cutover. However, if preferred, steps 1-2 and 4-5 can be 
 
 ## Risks / Trade-offs
 
-**[Salesforce connection format -- BLOCKER]** The exact JSON fields required for the Airflow Salesforce provider connection are not confirmed. The `consumer_key`/`consumer_secret` pair may be insufficient -- a `refresh_token` or different auth flow may be needed. This blocks finalization of the `salesforce-conn` ESO template, specs, and tasks.
--> Mitigation: Manual research task (see Decision 2) must be completed first. The warehouse postgres connection can proceed independently.
+**[Salesforce connection format -- RESOLVED]** The auth flow is JWT Bearer. Required fields: `consumer_key`, `private_key`, `domain` (in extra), plus `login` (username) at the connection level. `consumer_secret` is not used. A new Azure KV secret (`app--salesforce-private-key--prod`) and Salesforce org setup (integration user, certificate upload, permission set) are prerequisites.
 
 **[CNPG password not in sync with KV]** The warehouse database password in Azure KV (`app--warehouse-postgres-password--prod`) was manually stored. If the CNPG operator rotates the `app` user password, the KV secret becomes stale and the connection URI will use the wrong password.
 -> Mitigation: This is a pre-existing risk (the current `postgres-credentials` ExternalSecret has the same dependency). Out of scope for this change, but worth noting for future work.
