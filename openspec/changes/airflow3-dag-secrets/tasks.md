@@ -29,6 +29,6 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Confirm Flux reconciles new ExternalSecrets and K8s Secrets `warehouse-postgres-conn` and `salesforce-conn` exist in `airflow` namespace
-- [ ] 6.2 Confirm `postgres_ping` DAG succeeds using `warehouse_postgres` conn_id
+- [x] 6.1 Confirm Flux reconciles new ExternalSecrets and K8s Secrets `warehouse-postgres-conn` and `salesforce-conn` exist in `airflow` namespace
+- [x] 6.2 Confirm `postgres_ping` DAG succeeds using `warehouse_postgres` conn_id
 - [ ] 6.3 Confirm `salesforce_extraction` DAG succeeds using `salesforce` conn_id

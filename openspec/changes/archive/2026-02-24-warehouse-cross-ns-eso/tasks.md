@@ -9,6 +9,6 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Confirm `kubernetes-warehouse` SecretStore shows `Ready: True` in `airflow` namespace
-- [ ] 3.2 Confirm `warehouse-postgres-conn` ExternalSecret syncs successfully and K8s Secret exists with valid PostgreSQL URI in `AIRFLOW_CONN_WAREHOUSE_POSTGRES` key
-- [ ] 3.3 Confirm `postgres_ping` DAG succeeds using `warehouse_postgres` conn_id
+- [x] 3.1 Confirm `kubernetes-warehouse` SecretStore shows `Ready: True` in `airflow` namespace
+- [x] 3.2 Confirm `warehouse-postgres-conn` ExternalSecret syncs successfully and K8s Secret exists with valid PostgreSQL URI in `AIRFLOW_CONN_WAREHOUSE_POSTGRES` key
+- [x] 3.3 Confirm `postgres_ping` DAG succeeds using `warehouse_postgres` conn_id
