@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "kubernetes-specialist": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "5649a06b54a2327d930e7473912b23e111afc0e84160b88842bb42b954725ea2"
+    }
+  }
+}
