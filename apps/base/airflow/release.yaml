@@ -26,16 +26,18 @@ spec:
     executor: KubernetesExecutor
 
     # Airflow configuration
-    airflow:
-      config:
-        AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
-        AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-        AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
-        # KubernetesExecutor configuration
-        AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: "airflow"
-        AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: "false"
-        AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS_ON_FAILURE: "False"
-        AIRFLOW__KUBERNETES_EXECUTOR__WORKER_PODS_CREATION_BATCH_SIZE: "5"
+    config:
+      core:
+        dags_are_paused_at_creation: "true"
+        load_examples: "false"
+      scheduler:
+        enable_health_check: "true"
+      # KubernetesExecutor configuration
+      kubernetes_executor:
+        namespace: "airflow"
+        delete_worker_pods: "True"
+        delete_worker_pods_on_failure: "False"
+        worker_pods_creation_batch_size: "5"
 
     # Database configuration for CloudNative-PG
     postgresql:
