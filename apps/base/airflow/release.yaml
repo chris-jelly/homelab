@@ -32,10 +32,10 @@ spec:
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
         AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
         # KubernetesExecutor configuration
-        AIRFLOW__KUBERNETES__NAMESPACE: "airflow"
-        AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "True"
-        AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE: "False"
-        AIRFLOW__KUBERNETES__WORKER_PODS_CREATION_BATCH_SIZE: "5"
+        AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: "airflow"
+        AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: "true"
+        AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS_ON_FAILURE: "False"
+        AIRFLOW__KUBERNETES_EXECUTOR__WORKER_PODS_CREATION_BATCH_SIZE: "5"
 
     # Database configuration for CloudNative-PG
     postgresql:
@@ -132,7 +132,7 @@ spec:
           memory: 1Gi
           cpu: 1000m
       persistence:
-        enabled: false  # Not needed with git-sync
+        enabled: false # Not needed with git-sync
 
     # Disable components we don't need
     flower:
