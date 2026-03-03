@@ -18,9 +18,8 @@ A plan to make every stateful workload in the cluster recoverable from a full re
 |---------|-----------|---------|---------|----------|
 | `airflow-db-production-cnpg-v1` | `airflow` | 2 Gi | No | 1 |
 | `warehouse-db-production-cnpg-v1` | `warehouse` | 1 Gi | No | 1 |
-| `warehouse-db-dev-cnpg-v1` | `warehouse-dev` | 1 Gi | No | 1 |
 
-All three CNPG clusters run single-instance with no backup configuration, no WAL archiving, and no scheduled base backups. A node failure or cluster rebuild means total data loss.
+All CNPG clusters run single-instance with no backup configuration, no WAL archiving, and no scheduled base backups. A node failure or cluster rebuild means total data loss.
 
 ## Goals
 
@@ -28,7 +27,7 @@ All three CNPG clusters run single-instance with no backup configuration, no WAL
 2. CNPG clusters can bootstrap from their Azure backup on a fresh cluster rebuild
 3. File-based apps (Audiobookshelf, Linkding) have scheduled backups to Azure Blob Storage
 4. Actual Budget's existing backup pattern is the template for other file-based backups
-5. `warehouse-dev` is explicitly excluded — dev data doesn't need backup
+5. Backups remain focused on production data paths
 
 ## Strategy
 
@@ -274,7 +273,6 @@ apps/production/
 
 ## Excluded
 
-- **`warehouse-db-dev-cnpg-v1`** — dev data, not worth backing up
 - **Audiobookshelf media PVCs** (`audiobooks-pvc`, `podcasts-pvc`) — too large for blob backup, replaceable content. Consider a separate strategy (rsync to NAS) if media becomes irreplaceable.
 - **Automated restore for file-based apps** — restore is manual (download archive, extract to PVC). Automating this adds complexity for an infrequent operation. Revisit if rebuilds become common.
 

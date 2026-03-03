@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: warehouse-privilege-reconciler
+  namespace: warehouse
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: warehouse-privilege-reconciler-bootstrap
+  namespace: warehouse
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: warehouse-privilege-reconciler
+      restartPolicy: OnFailure
+      containers:
+        - name: reconciler
+          image: postgres:15
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "/scripts/reconcile.sh"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: warehouse-db-production-cnpg-v1-app
+                  key: uri
+            - name: WRITER_ROLE
+              value: app
+            - name: APPROVED_SCHEMAS
+              value: public
+            - name: READER_ROLES
+              value: warehouse_airflow_reader_prod,warehouse_streamlit_reader_prod
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: warehouse-privilege-reconciler
+            defaultMode: 0555
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: warehouse-privilege-reconciler
+  namespace: warehouse
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: warehouse-privilege-reconciler
+          restartPolicy: OnFailure
+          containers:
+            - name: reconciler
+              image: postgres:15
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "/scripts/reconcile.sh"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: warehouse-db-production-cnpg-v1-app
+                      key: uri
+                - name: WRITER_ROLE
+                  value: app
+                - name: APPROVED_SCHEMAS
+                  value: public
+                - name: READER_ROLES
+                  value: warehouse_airflow_reader_prod,warehouse_streamlit_reader_prod
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: scripts
+              configMap:
+                name: warehouse-privilege-reconciler
+                defaultMode: 0555

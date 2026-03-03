@@ -22,11 +22,11 @@ The CNPG operator SHALL be deployed in the `cloudnative-pg` namespace.
 - **THEN** `metadata.namespace` is `cloudnative-pg` and `spec.targetNamespace` is `cloudnative-pg`
 
 ### Requirement: Backward compatibility with existing clusters
-The operator upgrade SHALL NOT disrupt existing CNPG Cluster resources. The warehouse and warehouse-dev database clusters SHALL continue running without intervention after the operator upgrade.
+The operator upgrade SHALL NOT disrupt existing CNPG Cluster resources. The warehouse production database cluster SHALL continue running without intervention after the operator upgrade.
 
 #### Scenario: Warehouse clusters remain healthy after upgrade
 - **WHEN** the CNPG operator is upgraded from `0.24.0` to `0.27.1`
-- **THEN** the `warehouse-db-production-cnpg-v1` and `warehouse-db-dev-cnpg-v1` Cluster resources remain in a healthy state and their pods are not restarted unnecessarily
+- **THEN** the `warehouse-db-production-cnpg-v1` Cluster resource remains in a healthy state and its pods are not restarted unnecessarily
 
 ### Requirement: Operator upgrade before Airflow teardown
 The CNPG operator upgrade SHALL be applied before the Airflow CNPG cluster is torn down and recreated, so the new Airflow database cluster is managed by the updated operator from creation.

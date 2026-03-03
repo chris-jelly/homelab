@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warehouse-privilege-reconciler
+  namespace: warehouse
+data:
+  reconcile.sh: |
+    #!/bin/sh
+    set -eu
+
+    log() {
+      printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
+    }
+
+    require_var() {
+      var_name="$1"
+      eval "var_value=\${$var_name-}"
+      if [ -z "$var_value" ]; then
+        log "missing required env var: $var_name"
+        exit 1
+      fi
+    }
+
+    require_var DATABASE_URL
+    require_var WRITER_ROLE
+    require_var APPROVED_SCHEMAS
+    require_var READER_ROLES
+
+    log "starting warehouse privilege reconciliation"
+    log "writer role: ${WRITER_ROLE}"
+    log "approved schemas: ${APPROVED_SCHEMAS}"
+    log "reader roles: ${READER_ROLES}"
+
+    for reader_role in $(printf '%s' "${READER_ROLES}" | tr ',' ' '); do
+      log "granting CONNECT for ${reader_role}"
+      psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -v reader_role="${reader_role}" <<'SQL'
+    SELECT format('GRANT CONNECT ON DATABASE %I TO %I', current_database(), :'reader_role') \gexec
+    SQL
+
+      for schema_name in $(printf '%s' "${APPROVED_SCHEMAS}" | tr ',' ' '); do
+        schema_exists="$(psql "${DATABASE_URL}" -At -v ON_ERROR_STOP=1 -v schema_name="${schema_name}" -c "SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = :'schema_name');")"
+        if [ "${schema_exists}" != "t" ]; then
+          log "schema ${schema_name} does not exist yet; skipping grants for ${reader_role}"
+          continue
+        fi
+
+        log "granting schema/object/default privileges for reader=${reader_role} schema=${schema_name}"
+        psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -v reader_role="${reader_role}" -v schema_name="${schema_name}" -v writer_role="${WRITER_ROLE}" <<'SQL'
+    SELECT format('GRANT USAGE ON SCHEMA %I TO %I', :'schema_name', :'reader_role') \gexec
+    SELECT format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO %I', :'schema_name', :'reader_role') \gexec
+    SELECT format('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %I TO %I', :'schema_name', :'reader_role') \gexec
+    SELECT format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA %I GRANT SELECT ON TABLES TO %I', :'writer_role', :'schema_name', :'reader_role') \gexec
+    SELECT format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA %I GRANT USAGE, SELECT ON SEQUENCES TO %I', :'writer_role', :'schema_name', :'reader_role') \gexec
+    SQL
+      done
+    done
+
+    log "warehouse privilege reconciliation completed"

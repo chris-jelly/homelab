@@ -7,6 +7,31 @@ spec:
   description: "Postgres cluster for data engineering airflow/dbt/analytics projects"
   imageName: ghcr.io/cloudnative-pg/postgresql:13
   instances: 1
+  managed:
+    roles:
+      - name: warehouse_airflow_reader_prod
+        ensure: present
+        login: true
+        inherit: true
+        superuser: false
+        createdb: false
+        createrole: false
+      - name: warehouse_streamlit_reader_prod
+        ensure: present
+        login: true
+        inherit: true
+        superuser: false
+        createdb: false
+        createrole: false
+      - name: warehouse_admin_prod
+        ensure: present
+        login: true
+        inherit: true
+        superuser: false
+        createdb: false
+        createrole: false
+        passwordSecret:
+          name: warehouse-admin-credentials
 
   inheritedMetadata: 
     labels:

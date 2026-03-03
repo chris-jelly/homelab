@@ -160,7 +160,7 @@ flux-system
   |     '-- infra-configs  (ClusterIssuers, ClusterSecretStores)
   |-- monitoring-controllers (kube-prometheus-stack)
   |     '-- monitoring-configs (Grafana dashboards)
-  |-- databases            (CloudNative-PG clusters: airflow, warehouse, warehouse-dev)
+  |-- databases            (CloudNative-PG clusters: airflow, warehouse)
         '-- apps           (audiobookshelf, linkding, actual-budget, airflow, homepage)
 ```
 
