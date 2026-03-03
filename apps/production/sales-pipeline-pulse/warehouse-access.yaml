@@ -29,19 +29,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: external-secrets-warehouse-reader
-  namespace: warehouse
-rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["authorization.k8s.io"]
-  resources: ["selfsubjectrulesreviews"]
-  verbs: ["create"]
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: streamlit-external-secrets-warehouse-reader
