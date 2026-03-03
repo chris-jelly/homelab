@@ -27,7 +27,7 @@ spec:
         ensure: present
         login: true
         inherit: true
-        superuser: false
+        superuser: true
         createdb: false
         createrole: false
         passwordSecret:

@@ -7,7 +7,7 @@ Runbook and contract for warehouse role management, privilege reconciliation, an
 Production (`warehouse` namespace):
 - Read role for Airflow: `warehouse_airflow_reader_prod`
 - Read role for Streamlit: `warehouse_streamlit_reader_prod`
-- Admin LOGIN role for pgAdmin: `warehouse_admin_prod`
+- Admin SUPERUSER login role for pgAdmin: `warehouse_admin_prod`
 
 The CNPG cluster manifest declaratively manages these roles. Password material for the admin role is sourced via External Secrets and attached through CNPG `passwordSecret`.
 
@@ -70,7 +70,7 @@ The reconciler grants:
 - Verify ExternalSecret synchronization:
   - `kubectl -n warehouse get externalsecret warehouse-admin-credentials`
 - Login in pgAdmin with `warehouse_admin_prod` and confirm connection to `-rw` service endpoint.
-- Validate admin actions stay within approved operational boundaries.
+- Validate superuser actions required for admin workflows.
 
 ## Troubleshooting
 
