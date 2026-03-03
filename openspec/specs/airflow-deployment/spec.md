@@ -136,6 +136,17 @@ The HelmRelease SHALL reconcile every 10 minutes with install and upgrade remedi
 - **WHEN** the HelmRelease manifest is applied
 - **THEN** `spec.interval` is `10m`, `spec.install.remediation.retries` is `3`, and `spec.upgrade.remediation.retries` is `3`
 
+### Requirement: Kustomization includes connection ExternalSecrets
+The production Kustomization at `apps/production/airflow/kustomization.yaml` SHALL include resource entries for `warehouse-postgres-conn-externalsecret.yaml` and `salesforce-conn-externalsecret.yaml`.
+
+#### Scenario: New ExternalSecret manifests are in the resource list
+- **WHEN** the Kustomization manifest is applied
+- **THEN** the `resources` list includes entries for the warehouse PostgreSQL connection and Salesforce connection ExternalSecret manifests
+
+#### Scenario: Old ExternalSecret manifests are removed from the resource list
+- **WHEN** the Kustomization manifest is applied
+- **THEN** the `resources` list does NOT include `salesforce-credentials-externalsecret.yaml` or `postgres-credentials-externalsecret.yaml`
+
 ### Requirement: Clean teardown before deployment
 The upgrade SHALL be performed as a clean teardown and redeploy. The existing HelmRelease and CNPG database cluster SHALL be deleted before the new manifests are applied. No Airflow 2 data migration SHALL be performed.
 
