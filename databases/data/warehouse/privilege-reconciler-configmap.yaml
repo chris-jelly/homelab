@@ -38,7 +38,10 @@ data:
     SQL
 
       for schema_name in $(printf '%s' "${APPROVED_SCHEMAS}" | tr ',' ' '); do
-        schema_exists="$(psql "${DATABASE_URL}" -At -v ON_ERROR_STOP=1 -v schema_name="${schema_name}" -c "SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = :'schema_name');")"
+        schema_exists="$(psql "${DATABASE_URL}" -At -v ON_ERROR_STOP=1 -v schema_name="${schema_name}" <<'SQL'
+    SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = :'schema_name');
+    SQL
+        )"
         if [ "${schema_exists}" != "t" ]; then
           log "schema ${schema_name} does not exist yet; skipping grants for ${reader_role}"
           continue
