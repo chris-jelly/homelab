@@ -16,7 +16,7 @@
 ## 3. Verification and operations
 
 - [ ] 3.1 Validate from-scratch bootstrap flow: roles reconcile before object creation, reconciler no-ops safely, then converges grants after DAG object creation.
-- [ ] 3.2 Validate Airflow read access to existing and newly created approved-schema objects.
-- [ ] 3.3 Validate Streamlit read access to existing and newly created approved-schema objects.
-- [ ] 3.4 Validate pgAdmin admin LOGIN can connect with Key Vault-backed credentials and enforce the configured privilege posture.
+- [x] 3.2 Validate Airflow read access to existing and newly created approved-schema objects.
+- [x] 3.3 Validate Streamlit read access to existing and newly created approved-schema objects.
+- [x] 3.4 Validate pgAdmin admin LOGIN can connect with Key Vault-backed credentials and enforce the configured privilege posture.
 - [x] 3.5 Update runbook/spec docs with troubleshooting, drift-detection checks, and rollback notes.
