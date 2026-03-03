@@ -7,3 +7,4 @@ resources:
   - airflow
   - actualbudget
   - homepage
+  - sales-pipeline-pulse

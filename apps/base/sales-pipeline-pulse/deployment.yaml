@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales-pipeline-pulse
+  namespace: streamlit
+  labels:
+    app.kubernetes.io/name: sales-pipeline-pulse
+    app.kubernetes.io/instance: sales-pipeline-pulse
+    app.kubernetes.io/part-of: homelab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sales-pipeline-pulse
+      app.kubernetes.io/instance: sales-pipeline-pulse
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sales-pipeline-pulse
+        app.kubernetes.io/instance: sales-pipeline-pulse
+    spec:
+      containers:
+        - name: streamlit-sales-pipeline-pulse
+          image: ghcr.io/chris-jelly/de-streamlit-sales-analytics/streamlit-sales-pipeline-pulse:main
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: prod
+            - name: APP_TITLE
+              value: "Sales Pipeline Pulse - Phase 1"
+            - name: STREAMLIT_PORT
+              value: "8501"
+            - name: STREAMLIT_ADDRESS
+              value: 0.0.0.0
+            - name: SALES_WAREHOUSE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sales-pipeline-pulse-secrets
+                  key: SALES_WAREHOUSE_URL
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
