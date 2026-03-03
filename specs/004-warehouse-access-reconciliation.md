@@ -21,6 +21,15 @@ The ExternalSecret writes to Kubernetes secret `warehouse-admin-credentials` in 
 - `username`: fixed to `warehouse_admin_prod`
 - `password`: sourced from `secret/warehouse-admin-password-prod`
 
+## Streamlit Reader Credential Contract
+
+- Streamlit reader credentials are generated in-cluster (no Azure Key Vault dependency).
+- Generator: `Password/warehouse-streamlit-reader-password` in `warehouse` namespace.
+- Generated secret: `warehouse-streamlit-reader-credentials` with keys:
+  - `username`: fixed to `warehouse_streamlit_reader_prod`
+  - `password`: generated and periodically refreshed by External Secrets
+- Streamlit app consumes this credential through cross-namespace Kubernetes SecretStore (`kubernetes-warehouse`) and builds `SALES_WAREHOUSE_URL` from the generated password.
+
 ## Reconciler Contract
 
 - Reconciler runs once at deploy (`Job`) and continuously (`CronJob`, every 15 minutes).

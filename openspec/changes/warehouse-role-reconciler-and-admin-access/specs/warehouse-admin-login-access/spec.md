@@ -22,12 +22,12 @@ The system SHALL source warehouse admin LOGIN password material from Azure Key V
 - **WHEN** CNPG managed role configuration is evaluated
 - **THEN** admin LOGIN role password source points to the Kubernetes secret maintained by External Secrets
 
-### Requirement: Admin role SHALL default to least privilege
-The system SHALL configure admin LOGIN role attributes with least-privilege defaults and SHALL avoid superuser privilege unless explicitly documented by a separate approved requirement.
+### Requirement: Admin role SHALL declare explicit privilege posture
+The system SHALL configure admin LOGIN role attributes with an explicit and documented privilege posture, and any elevation (including superuser) SHALL be tracked as an approved, reviewed configuration change.
 
-#### Scenario: Superuser is not implicitly granted
+#### Scenario: Superuser is only granted by explicit declaration
 - **WHEN** admin role attributes are inspected
-- **THEN** the role is not configured as superuser by default
+- **THEN** superuser is enabled only when explicitly declared in managed role configuration
 
 #### Scenario: Elevated privilege requires explicit decision
 - **WHEN** operational need for broader privileges is identified

@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-secrets-kubernetes-reader
+  namespace: streamlit
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets-kubernetes-reader
+  namespace: streamlit
+rules:
+- apiGroups: ["authorization.k8s.io"]
+  resources: ["selfsubjectrulesreviews"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: external-secrets-kubernetes-reader
+  namespace: streamlit
+subjects:
+- kind: ServiceAccount
+  name: external-secrets-kubernetes-reader
+  namespace: streamlit
+roleRef:
+  kind: Role
+  name: external-secrets-kubernetes-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets-warehouse-reader
+  namespace: warehouse
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["authorization.k8s.io"]
+  resources: ["selfsubjectrulesreviews"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: streamlit-external-secrets-warehouse-reader
+  namespace: warehouse
+subjects:
+- kind: ServiceAccount
+  name: external-secrets-kubernetes-reader
+  namespace: streamlit
+roleRef:
+  kind: Role
+  name: external-secrets-warehouse-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: kubernetes-warehouse
+  namespace: streamlit
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: warehouse
+      server:
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: external-secrets-kubernetes-reader

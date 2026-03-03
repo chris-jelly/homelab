@@ -23,6 +23,8 @@ spec:
         superuser: false
         createdb: false
         createrole: false
+        passwordSecret:
+          name: warehouse-streamlit-reader-credentials
       - name: warehouse_admin_prod
         ensure: present
         login: true

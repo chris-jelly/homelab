@@ -5,5 +5,6 @@ resources:
   - namespace.yaml
   - database.yaml
   - admin-credentials-externalsecret.yaml
+  - streamlit-reader-credentials.yaml
   - privilege-reconciler-configmap.yaml
   - privilege-reconciler-workloads.yaml
