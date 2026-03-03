@@ -18,7 +18,6 @@ The CNPG cluster manifest declaratively manages these roles. Password material f
 - Expected Key Vault key for admin password: `secret/warehouse-admin-password-prod`
 
 The ExternalSecret writes to Kubernetes secret `warehouse-admin-credentials` in `warehouse` namespace with:
-- `username`: fixed to `warehouse_admin_prod`
 - `password`: sourced from `secret/warehouse-admin-password-prod`
 
 ## Reconciler Contract
