@@ -25,6 +25,20 @@ curl -i http://127.0.0.1:8501/
 kubectl logs -n streamlit deploy/sales-pipeline-pulse --tail=200
 ```
 
+4. If auth failures occur after password rotation, verify CNPG has reconciled the
+   latest reader secret version before escalating:
+
+```bash
+kubectl get secret -n warehouse warehouse-streamlit-reader-credentials -o jsonpath='{.metadata.resourceVersion}{"\n"}'
+kubectl get cluster -n warehouse warehouse-db-production-cnpg-v1 -o jsonpath='{.status.managedRolesStatus.passwordStatus.warehouse_streamlit_reader_prod.resourceVersion}{"\n"}'
+```
+
+The two values should match. If they do not, force a reconcile and retry:
+
+```bash
+kubectl patch cluster.postgresql.cnpg.io warehouse-db-production-cnpg-v1 -n warehouse --type=merge -p "{\"metadata\":{\"annotations\":{\"ops.jellylabs/reconcile-at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}}}"
+```
+
 Do not treat readiness/liveness probe success as sufficient rollout validation.
 
 ## Upstream Handoff Checklist (Streamlit Repo)
