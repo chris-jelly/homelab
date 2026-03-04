@@ -21,5 +21,5 @@
 ## 4. Validation
 
 - [x] 4.1 Run `kustomize build` (or equivalent Flux render validation) for both `infrastructure/configs/base` and `apps/production`, and resolve manifest errors
-- [ ] 4.2 Validate hostname routing for `linkding.jellylabs.xyz` and `streamlit.jellylabs.xyz` after deployment
-- [ ] 4.3 Confirm no remaining app-local cloudflared workloads are active for migrated applications
+- [x] 4.2 Validate hostname routing for `linkding.jellylabs.xyz` and `streamlit.jellylabs.xyz` after deployment
+- [x] 4.3 Confirm no remaining app-local cloudflared workloads are active for migrated applications

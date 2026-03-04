@@ -9,6 +9,14 @@ Update Cloudflare DNS records to point both hostnames at the shared tunnel targe
 
 This repository does not manage Cloudflare DNS records yet. Apply DNS changes manually in Cloudflare.
 
+## Cloudflare tunnel origin setting
+
+In Cloudflare Tunnel Public Hostnames, set the origin service URL to the Traefik service:
+
+- `http://traefik.kube-system.svc.cluster.local:80`
+
+Do not point tunnel hostnames directly at app-local short names such as `http://linkding:9090` or `http://sales-pipeline-pulse:8501` from the shared tunnel namespace. Use Traefik as the single origin and let Kubernetes `Ingress` rules handle hostname routing.
+
 ## Validation checklist
 
 After Flux reconciliation and DNS propagation:
