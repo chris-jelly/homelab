@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-cloudflared
+  labels:
+    app.kubernetes.io/name: shared-cloudflared
+    app.kubernetes.io/part-of: homelab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shared-cloudflared
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: shared-cloudflared
+        app.kubernetes.io/part-of: homelab
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config/config.yaml
+            - run
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 1
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/config
+              readOnly: true
+            - name: creds
+              mountPath: /etc/cloudflared/creds
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: shared-cloudflared
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: creds
+          secret:
+            secretName: shared-cloudflare-edge-secrets
+            items:
+              - key: tunnel-credentials
+                path: credentials.json
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-cloudflared
+data:
+  config.yaml: |
+    tunnel: ldpi
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    metrics: 0.0.0.0:2000
+    no-autoupdate: true
+    ingress:
+      - service: http://traefik.kube-system.svc.cluster.local:80
+      - service: http_status:404

@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sales-pipeline-pulse
+  namespace: streamlit
+  labels:
+    app.kubernetes.io/name: sales-pipeline-pulse
+    app.kubernetes.io/instance: sales-pipeline-pulse
+    app.kubernetes.io/part-of: homelab
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: streamlit.jellylabs.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sales-pipeline-pulse
+                port:
+                  number: 8501
