@@ -30,7 +30,7 @@ spec:
             - name: WRITER_ROLE
               value: app
             - name: APPROVED_SCHEMAS
-              value: public
+              value: public,raw_salesforce,staging,intermediate,marts
             - name: READER_ROLES
               value: warehouse_airflow_reader_prod,warehouse_streamlit_reader_prod
           volumeMounts:
@@ -74,7 +74,7 @@ spec:
                 - name: WRITER_ROLE
                   value: app
                 - name: APPROVED_SCHEMAS
-                  value: public
+                  value: public,raw_salesforce,staging,intermediate,marts
                 - name: READER_ROLES
                   value: warehouse_airflow_reader_prod,warehouse_streamlit_reader_prod
               volumeMounts:
