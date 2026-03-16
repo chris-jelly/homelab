@@ -5,6 +5,9 @@ metadata:
   namespace: audiobookshelf
   labels:
     app: audiobookshelf
+    app.kubernetes.io/name: audiobookshelf
+    app.kubernetes.io/instance: audiobookshelf
+    app.kubernetes.io/part-of: homelab
 spec:
   replicas: 1
   selector:
@@ -14,6 +17,9 @@ spec:
     metadata:
       labels:
         app: audiobookshelf
+        app.kubernetes.io/name: audiobookshelf
+        app.kubernetes.io/instance: audiobookshelf
+        app.kubernetes.io/part-of: homelab
     spec:
       securityContext:
         fsGroup: 1000 # default node

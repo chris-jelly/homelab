@@ -7,6 +7,14 @@ metadata:
     app.kubernetes.io/name: linkding
     app.kubernetes.io/instance: linkding
     app.kubernetes.io/part-of: homelab
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/name: Linkding
+    gethomepage.dev/icon: linkding.svg
+    gethomepage.dev/description: Minimal bookmark manager
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=linkding
+    gethomepage.dev/weight: "10"
 spec:
   ingressClassName: traefik
   rules:

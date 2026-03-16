@@ -28,10 +28,10 @@ data:
       Applications:
         style: row
         columns: 2
-      Monitoring:
+      Observability:
         style: row
         columns: 2
-      Infrastructure:
+      Platform:
         style: row
         columns: 2
 
@@ -55,42 +55,14 @@ data:
                 memory: true
                 showLabel: true
     
-    - Applications:
-        - Audiobookshelf:
-            href: https://audiobookshelf.jellylabs.xyz
-            icon: audiobookshelf.svg
-            description: Self-hosted audiobook and podcast server
-            namespace: audiobookshelf
-            app: audiobookshelf
-        
-        - Linkding:
-            href: https://linkding.jellylabs.xyz
-            icon: linkding.svg
-            description: Minimal bookmark manager
-            namespace: linkding
-            app: linkding
-        
-        - ActualBudget:
-            href: https://actualbudget.jellylabs.xyz
-            icon: actual.svg
-            description: Personal finance management
-            namespace: actualbudget
-            app: actualbudget
-        
-        - Airflow:
-            href: https://airflow.jellylabs.xyz
-            icon: apache-airflow.svg
-            description: Workflow orchestration platform
-            namespace: airflow
-            app: airflow
-    
-    - Monitoring:
+    - Observability:
         - Grafana:
             href: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
             icon: grafana.svg
             description: Monitoring dashboards and visualization
             namespace: monitoring
             app: grafana
+            siteMonitor: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80/login
         
         - Prometheus:
             href: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
@@ -98,32 +70,34 @@ data:
             description: Metrics collection and alerting
             namespace: monitoring
             app: prometheus
+            siteMonitor: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/-/healthy
     
-    - Infrastructure:
+    - Platform:
         - Flux:
             icon: flux-cd.svg
             description: GitOps continuous delivery
-            widget:
-              type: flux
-              cluster: default
+            href: https://github.com/chris-jelly/homelab
+            namespace: flux-system
+            podSelector: app.kubernetes.io/part-of=flux
         
         - Cert-Manager:
             icon: cert-manager.svg
             description: Kubernetes certificate management
+            href: https://cert-manager.io/
             namespace: cert-manager
             app: cert-manager
         
         - External Secrets:
             icon: external-secrets.svg
             description: Secret management from Azure Key Vault
+            href: https://external-secrets.io/
             namespace: external-secrets
             app: external-secrets
         
         - CloudNative-PG:
             icon: postgresql.svg
             description: PostgreSQL operator for databases
-            namespace: cnpg-system
-            app: cnpg-controller-manager
+            href: https://cloudnative-pg.io/
 
   widgets.yaml: |
     - logo:
@@ -174,9 +148,6 @@ data:
         - Flux CD:
             - icon: flux-cd.svg
               href: https://fluxcd.io/
-        - Homepage Docs:
-            - icon: homepage.svg
-              href: https://gethomepage.dev/
     
     - Documentation:
         - CloudNative-PG:

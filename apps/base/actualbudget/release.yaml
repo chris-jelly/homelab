@@ -64,6 +64,14 @@ spec:
     ingress:
       enabled: true
       className: traefik
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/group: Applications
+        gethomepage.dev/name: Actual Budget
+        gethomepage.dev/icon: actual.svg
+        gethomepage.dev/description: Personal finance management
+        gethomepage.dev/app: actualbudget
+        gethomepage.dev/weight: "30"
       hosts:
         - host: actualbudget.jellylabs.xyz
           paths:
@@ -73,4 +81,3 @@ spec:
         - secretName: actualbudget-tls
           hosts:
             - actualbudget.jellylabs.xyz
-

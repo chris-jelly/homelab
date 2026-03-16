@@ -87,6 +87,14 @@ spec:
       apiServer:
         enabled: true
         ingressClassName: traefik
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/group: Applications
+          gethomepage.dev/name: Airflow
+          gethomepage.dev/icon: apache-airflow.svg
+          gethomepage.dev/description: Workflow orchestration platform
+          gethomepage.dev/app: airflow
+          gethomepage.dev/weight: "40"
         hosts:
           - name: airflow.jellylabs.xyz
             tls:

@@ -7,6 +7,14 @@ metadata:
     app.kubernetes.io/name: sales-pipeline-pulse
     app.kubernetes.io/instance: sales-pipeline-pulse
     app.kubernetes.io/part-of: homelab
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Applications
+    gethomepage.dev/name: Sales Pipeline Pulse
+    gethomepage.dev/icon: si-streamlit
+    gethomepage.dev/description: Sales pipeline analytics dashboard
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=sales-pipeline-pulse
+    gethomepage.dev/weight: "20"
 spec:
   ingressClassName: traefik
   rules:
