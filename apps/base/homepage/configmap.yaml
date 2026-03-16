@@ -22,9 +22,6 @@ data:
     headerStyle: boxed
     hideVersion: true
     layout:
-      Cluster:
-        style: row
-        columns: 3
       Applications:
         style: row
         columns: 2
@@ -36,25 +33,6 @@ data:
         columns: 2
 
   services.yaml: |
-    - Cluster:
-        - Kubernetes:
-            href: https://k9s.io/
-            icon: kubernetes.svg
-            description: Kubernetes cluster management
-            widget:
-              type: kubernetes
-              cluster:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-                label: "cluster"
-              nodes:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-    
     - Observability:
         - Grafana:
             href: http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
