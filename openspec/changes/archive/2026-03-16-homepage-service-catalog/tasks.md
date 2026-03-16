@@ -30,6 +30,6 @@
 
 ## 6. Validate the new catalog behavior
 
-- [ ] 6.1 Verify Homepage renders the expected application, platform, and observability sections without duplicate entries
-- [ ] 6.2 Verify status indicators and links are accurate for migrated existing apps
-- [ ] 6.3 Verify new ingress-backed apps can be added through metadata on their own manifests without expanding the central Homepage catalog
+- [x] 6.1 Verify Homepage renders the expected application, platform, and observability sections without duplicate entries
+- [x] 6.2 Verify status indicators and links are accurate for migrated existing apps
+- [x] 6.3 Verify new ingress-backed apps can be added through metadata on their own manifests without expanding the central Homepage catalog
