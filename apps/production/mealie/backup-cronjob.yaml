@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mealie-backup
+  namespace: mealie
+  labels:
+    app.kubernetes.io/name: mealie
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: homelab
+spec:
+  schedule: "20 3 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: mealie
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 911
+          containers:
+            - name: backup
+              image: mcr.microsoft.com/azure-cli:latest
+              envFrom:
+                - configMapRef:
+                    name: mealie-backup-config
+                - secretRef:
+                    name: mealie-backup-secrets
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: 100m
+                limits:
+                  memory: 512Mi
+                  cpu: 500m
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                privileged: false
+                readOnlyRootFilesystem: false
+              volumeMounts:
+                - name: mealie-data
+                  mountPath: /app-data
+                  readOnly: true
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: backup-temp
+                  mountPath: /tmp
+              command:
+                - /bin/bash
+                - /scripts/backup.sh
+          volumes:
+            - name: mealie-data
+              persistentVolumeClaim:
+                claimName: mealie-data
+            - name: backup-script
+              configMap:
+                name: mealie-backup-script
+                defaultMode: 0755
+            - name: backup-temp
+              emptyDir: {}

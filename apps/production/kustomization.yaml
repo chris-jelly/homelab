@@ -6,5 +6,6 @@ resources:
   - linkding
   - airflow
   - actualbudget
+  - mealie
   - homepage
   - sales-pipeline-pulse

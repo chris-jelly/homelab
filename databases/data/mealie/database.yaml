@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mealie-db-production-cnpg-v1
+  namespace: mealie
+spec:
+  description: "Postgres cluster for Mealie"
+  imageName: ghcr.io/cloudnative-pg/postgresql:15
+  instances: 1
+  bootstrap:
+    initdb:
+      database: mealie
+      owner: mealie
+      secret:
+        name: mealie-db-app-credentials
+  inheritedMetadata:
+    labels:
+      app: mealie-database
+      policy-type: database
+      app.kubernetes.io/part-of: homelab
+  storage:
+    size: 8Gi
+  backup:
+    barmanObjectStore:
+      destinationPath: https://stjellyhomelabbackups.blob.core.windows.net/cnpg-backups/mealie
+      azureCredentials:
+        storageAccount:
+          name: cnpg-azure-backup-creds
+          key: AZURE_STORAGE_ACCOUNT
+        storageKey:
+          name: cnpg-azure-backup-creds
+          key: AZURE_STORAGE_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+    retentionPolicy: "30d"
