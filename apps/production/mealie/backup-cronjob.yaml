@@ -19,18 +19,19 @@ spec:
           labels:
             app.kubernetes.io/name: mealie
             app.kubernetes.io/component: backup
+            azure.workload.identity/use: "true"
         spec:
           restartPolicy: Never
+          serviceAccountName: mealie-backup
           securityContext:
             fsGroup: 911
           containers:
             - name: backup
-              image: mcr.microsoft.com/azure-cli:latest
+              image: ghcr.io/chris-jelly/mealie-backup-azcopy:10.25.1-r1
+              imagePullPolicy: IfNotPresent
               envFrom:
                 - configMapRef:
                     name: mealie-backup-config
-                - secretRef:
-                    name: mealie-backup-secrets
               resources:
                 requests:
                   memory: 256Mi
@@ -45,6 +46,9 @@ spec:
                     - ALL
                 privileged: false
                 readOnlyRootFilesystem: false
+                runAsGroup: 911
+                runAsNonRoot: true
+                runAsUser: 911
               volumeMounts:
                 - name: mealie-data
                   mountPath: /app-data

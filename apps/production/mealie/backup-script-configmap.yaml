@@ -17,12 +17,10 @@ data:
     echo "Timestamp: $(date -u +%Y-%m-%d_%H-%M-%S)"
     echo "========================================="
 
-    echo "Installing required tools..."
-    tdnf install -y tar gzip
-
     TIMESTAMP=$(date -u +%Y-%m-%d_%H-%M-%S)
     BACKUP_FILE="${BACKUP_PREFIX}-${TIMESTAMP}.tar.gz"
     TEMP_BACKUP="/tmp/${BACKUP_FILE}"
+    DESTINATION_URL="${BACKUP_DESTINATION_URL%/}/${BACKUP_FILE}"
 
     echo "Creating compressed archive of /app-data..."
     cd /app-data
@@ -32,44 +30,67 @@ data:
     echo "Backup archive created: ${BACKUP_FILE} (${BACKUP_SIZE})"
 
     echo "Uploading backup to Azure Blob Storage..."
-    az storage blob upload \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
-      --container-name "${CONTAINER_NAME}" \
-      --file "${TEMP_BACKUP}" \
-      --name "${BACKUP_FILE}" \
-      --overwrite false
+    azcopy copy "${TEMP_BACKUP}" "${DESTINATION_URL}" --put-md5 --overwrite=false
 
     echo "Upload successful: ${BACKUP_FILE}"
 
     echo "Cleaning up old backups (keeping last ${BACKUP_RETENTION_COUNT})..."
-    az storage blob list \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
-      --container-name "${CONTAINER_NAME}" \
-      --prefix "${BACKUP_PREFIX}-" \
-      --query "[].name" \
-      --output tsv | \
-    sort -r | \
-    tail -n +$((BACKUP_RETENTION_COUNT + 1)) | \
-    while read -r OLD_BACKUP; do
-      if [ -n "${OLD_BACKUP}" ]; then
-        echo "Deleting old backup: ${OLD_BACKUP}"
-        az storage blob delete \
-          --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
-          --container-name "${CONTAINER_NAME}" \
-          --name "${OLD_BACKUP}"
-      fi
-    done
+    LIST_OUTPUT="/tmp/azcopy-list.jsonl"
+    PRUNE_LIST="/tmp/azcopy-prune-list.txt"
+
+    azcopy list "${BACKUP_DESTINATION_URL}" \
+      --properties "LastModifiedTime" \
+      --machine-readable \
+      --output-type json > "${LIST_OUTPUT}"
+
+    python3 - <<'PY' > "${PRUNE_LIST}"
+    import json
+    import os
+
+    backup_prefix = os.environ["BACKUP_PREFIX"] + "-"
+    keep = int(os.environ["BACKUP_RETENTION_COUNT"])
+    list_output = "/tmp/azcopy-list.jsonl"
+
+    entries = []
+    with open(list_output, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            outer = json.loads(line)
+            if outer.get("MessageType") != "ListObject":
+                continue
+            inner = json.loads(outer["MessageContent"])
+            path = inner.get("Path", "")
+            name = path.rsplit("/", 1)[-1]
+            if not name.startswith(backup_prefix):
+                continue
+            entries.append((inner.get("LastModifiedTime", ""), path))
+
+    entries.sort(reverse=True)
+    for _, path in entries[keep:]:
+        print(path)
+    PY
+
+    if [ -s "${PRUNE_LIST}" ]; then
+      while read -r OLD_BACKUP; do
+        if [ -n "${OLD_BACKUP}" ]; then
+          echo "Deleting old backup: ${OLD_BACKUP}"
+        fi
+      done < "${PRUNE_LIST}"
+
+      azcopy remove "${BACKUP_DESTINATION_URL}" \
+        --recursive=true \
+        --list-of-files "${PRUNE_LIST}"
+    fi
 
     echo ""
     echo "Current backups in storage:"
-    az storage blob list \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
-      --container-name "${CONTAINER_NAME}" \
-      --prefix "${BACKUP_PREFIX}-" \
-      --query "[].{Name:name, Size:properties.contentLength, Modified:properties.lastModified}" \
-      --output table
+    azcopy list "${BACKUP_DESTINATION_URL}" \
+      --properties "LastModifiedTime" \
+      --machine-readable
 
-    rm -f "${TEMP_BACKUP}"
+    rm -f "${TEMP_BACKUP}" "${LIST_OUTPUT}" "${PRUNE_LIST}"
 
     echo ""
     echo "========================================="

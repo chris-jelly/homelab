@@ -7,6 +7,11 @@ spec:
   description: "Postgres cluster for Mealie"
   imageName: ghcr.io/cloudnative-pg/postgresql:15
   instances: 1
+  serviceAccountTemplate:
+    metadata:
+      name: mealie-backup
+      annotations:
+        azure.workload.identity/client-id: b5770047-281b-400e-9275-9cf9580654df
   bootstrap:
     initdb:
       database: mealie
@@ -18,18 +23,14 @@ spec:
       app: mealie-database
       policy-type: database
       app.kubernetes.io/part-of: homelab
+      azure.workload.identity/use: "true"
   storage:
     size: 8Gi
   backup:
     barmanObjectStore:
-      destinationPath: https://stjellyhomelabbackups.blob.core.windows.net/cnpg-backups/mealie
+      destinationPath: https://sthomelabbackups.blob.core.windows.net/mealie/db/
       azureCredentials:
-        storageAccount:
-          name: cnpg-azure-backup-creds
-          key: AZURE_STORAGE_ACCOUNT
-        storageKey:
-          name: cnpg-azure-backup-creds
-          key: AZURE_STORAGE_KEY
+        useDefaultAzureCredentials: true
       wal:
         compression: gzip
       data:

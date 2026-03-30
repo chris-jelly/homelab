@@ -3,5 +3,4 @@ kind: Kustomization
 resources:
   - app-credentials.yaml
   - database.yaml
-  - backup-externalsecret.yaml
   - scheduled-backup.yaml

@@ -8,5 +8,4 @@ resources:
   - certificate.yaml
   - backup-config-configmap.yaml
   - backup-script-configmap.yaml
-  - backup-externalsecret.yaml
   - backup-cronjob.yaml

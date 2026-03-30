@@ -8,6 +8,8 @@ metadata:
     app.kubernetes.io/component: backup
     app.kubernetes.io/part-of: homelab
 data:
-  CONTAINER_NAME: "mealie-backups"
+  AZCOPY_AUTO_LOGIN_TYPE: "WORKLOAD"
   BACKUP_RETENTION_COUNT: "8"
   BACKUP_PREFIX: "mealie-app-data-backup"
+  BACKUP_DESTINATION_URL: "https://sthomelabbackups.blob.core.windows.net/mealie/files"
+  AZCOPY_LOG_LOCATION: "/tmp/azcopy-logs"
