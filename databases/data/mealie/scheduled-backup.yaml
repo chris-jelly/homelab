@@ -4,7 +4,7 @@ metadata:
   name: mealie-db-scheduled-backup
   namespace: mealie
 spec:
-  schedule: "0 2 * * 0"
+  schedule: "0 2 * * 7"
   backupOwnerReference: self
   cluster:
     name: mealie-db-production-cnpg-v1
