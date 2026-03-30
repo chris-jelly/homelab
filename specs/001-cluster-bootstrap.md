@@ -7,8 +7,12 @@ How to go from a fresh Ubuntu 24.04 Server install on the control plane node to 
 - Raspberry Pi 5 (control plane) with Ubuntu 24.04 Server installed
 - SSH access to the Pi
 - Worker nodes networked and reachable from the control plane
+- Azure CLI 2.64 or later with the `connectedk8s` extension 1.10.0 or later
+- Access to subscription `10a32563-6c11-4d82-a986-be076562eb33`
 - Azure Service Principal credentials (ClientID + ClientSecret) for External Secrets Operator
 - This repo cloned on your local machine
+
+The homelab Azure footprint already exists in `rg-jellyhomelab` in `Canada Central`. Reuse the existing resource group, Key Vaults, storage account, and Arc-connected cluster resource instead of creating parallel resources during bootstrap.
 
 ## 1. Install k3s on the Control Plane
 
@@ -29,7 +33,7 @@ The control plane should show as `Ready` within a minute or two.
 
 ### Taint control plane to prevent workload scheduling
 
-The Pi is control-plane only — prevent workloads from being scheduled on it:
+The Pi is control-plane only. Prevent workloads from being scheduled on it:
 
 ```bash
 sudo k3s kubectl taint nodes $(hostname) node-role.kubernetes.io/control-plane:NoSchedule
@@ -45,13 +49,13 @@ sudo cat /var/lib/rancher/k3s/server/node-token
 
 ### If workers had a previous k3s agent installed
 
-The old agent can't authenticate against the new control plane (different cluster CA). Uninstall first, then re-join:
+The old agent cannot authenticate against the new control plane because the cluster CA changed. Uninstall first, then re-join:
 
 ```bash
 /usr/local/bin/k3s-agent-uninstall.sh
 ```
 
-This removes the k3s agent binary and config but does **not** wipe local storage (e.g., `/var/lib/rancher/k3s/storage/`). Old PV data will remain on disk as orphaned directories — Kubernetes will not reuse them. If you need to reclaim disk space, clean them up manually after the new cluster is running.
+This removes the k3s agent binary and config but does **not** wipe local storage such as `/var/lib/rancher/k3s/storage/`. Old PV data remains on disk as orphaned directories. Kubernetes will not reuse it. Clean it up manually later if you need the space.
 
 ### Join workers to the new control plane
 
@@ -90,7 +94,188 @@ mise install
 kubectl get nodes
 ```
 
-## 4. Bootstrap Flux CD
+## 4. Connect the Cluster to Azure Arc and Enable Workload Identity
+
+These steps establish the Arc-managed OIDC issuer that Azure-integrated workloads use for Microsoft Entra workload identity federation.
+
+Set the shared values first:
+
+```bash
+export ARC_RESOURCE_GROUP="rg-jellyhomelab"
+export ARC_LOCATION="canadacentral"
+export ARC_CLUSTER_NAME="HomelabArc"
+```
+
+### Register the required Azure resource providers
+
+Provider registration is subscription-scoped. If these providers are already registered, this is a no-op.
+
+```bash
+for ns in Microsoft.Kubernetes Microsoft.KubernetesConfiguration Microsoft.ExtendedLocation; do
+  az provider register --namespace "${ns}" --wait
+done
+```
+
+### Connect the cluster if needed
+
+If the Arc-connected cluster resource already exists, skip the `connect` call and move to the `show` and `update` steps.
+
+```bash
+az connectedk8s show \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}"
+```
+
+Create it only when that `show` command fails:
+
+```bash
+az connectedk8s connect \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}" \
+  --location "${ARC_LOCATION}" \
+  --distribution k3s \
+  --enable-oidc-issuer \
+  --enable-workload-identity
+```
+
+### Ensure OIDC issuer and workload identity are enabled
+
+Run the update command even if the cluster was connected earlier. It is the safest way to converge the Arc feature flags.
+
+```bash
+az connectedk8s update \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}" \
+  --enable-oidc-issuer \
+  --enable-workload-identity
+```
+
+### Verify the Arc-connected cluster resource and agents
+
+```bash
+az connectedk8s show \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}" \
+  --query '{name:name,location:location,provisioningState:provisioningState,oidcIssuer:oidcIssuerProfile.issuerUrl,workloadIdentity:securityProfile.workloadIdentity.enabled}' \
+  -o yaml
+
+kubectl get pods -n azure-arc
+```
+
+### Retrieve the Arc-managed issuer URL
+
+```bash
+export ARC_OIDC_ISSUER="$(az connectedk8s show \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}" \
+  --query 'oidcIssuerProfile.issuerUrl' \
+  -o tsv)"
+
+printf '%s\n' "${ARC_OIDC_ISSUER}"
+```
+
+### Configure k3s to mint tokens with the Arc issuer
+
+If `/etc/rancher/k3s/config.yaml` does not exist yet, create it. If it already exists, merge these settings into the existing file instead of overwriting other config.
+
+```bash
+sudo mkdir -p /etc/rancher/k3s
+
+sudo tee /etc/rancher/k3s/config.yaml >/dev/null <<EOF
+kube-apiserver-arg:
+  - "service-account-issuer=${ARC_OIDC_ISSUER}"
+  - "service-account-max-token-expiration=24h"
+EOF
+```
+
+Restart k3s so new projected service account tokens use the Arc issuer:
+
+```bash
+sudo systemctl restart k3s
+sudo systemctl status k3s --no-pager
+```
+
+### Validate the Arc issuer, JWKS, and fresh token claims
+
+Validate the discovery document:
+
+```bash
+python - <<'PY'
+import json
+import os
+import urllib.request
+
+url = os.environ['ARC_OIDC_ISSUER'] + '.well-known/openid-configuration'
+with urllib.request.urlopen(url) as response:
+    data = json.load(response)
+print(json.dumps({'issuer': data['issuer'], 'jwks_uri': data['jwks_uri']}, indent=2))
+PY
+```
+
+Validate the JWKS endpoint:
+
+```bash
+python - <<'PY'
+import json
+import os
+import urllib.request
+
+discovery_url = os.environ['ARC_OIDC_ISSUER'] + '.well-known/openid-configuration'
+with urllib.request.urlopen(discovery_url) as response:
+    jwks_uri = json.load(response)['jwks_uri']
+with urllib.request.urlopen(jwks_uri) as response:
+    jwks = json.load(response)
+print(json.dumps({'key_count': len(jwks.get('keys', [])), 'kids': [key.get('kid') for key in jwks.get('keys', [])]}, indent=2))
+PY
+```
+
+Mint a fresh service account token and confirm the `iss` claim matches the Arc issuer exactly:
+
+```bash
+export TOKEN="$(kubectl create token default -n default --duration=10m)"
+
+python - <<'PY'
+import base64
+import json
+import os
+
+payload = os.environ['TOKEN'].split('.')[1]
+payload += '=' * (-len(payload) % 4)
+claims = json.loads(base64.urlsafe_b64decode(payload))
+print(json.dumps({'iss': claims.get('iss'), 'sub': claims.get('sub'), 'aud': claims.get('aud')}, indent=2))
+PY
+```
+
+### Rollback and cleanup
+
+If k3s fails after the issuer change, restore the previous `/etc/rancher/k3s/config.yaml` content and restart k3s:
+
+```bash
+sudo systemctl restart k3s
+```
+
+If the Arc integration itself must be removed, delete the connected-cluster resource with Azure CLI so Azure-side resources and in-cluster agents are cleaned up together:
+
+```bash
+az connectedk8s delete \
+  --name "${ARC_CLUSTER_NAME}" \
+  --resource-group "${ARC_RESOURCE_GROUP}" \
+  --yes
+```
+
+### Standard Azure workload identity pattern
+
+Use this pattern for future Azure-integrated workloads after Arc is enabled:
+
+1. Set `kubernetes_oidc_issuer_url` in `~/git/jellylabs-dsc/infrastructure/azure/homelab/` to `ARC_OIDC_ISSUER` before `tofu apply`.
+2. Create one Azure user-assigned managed identity and one federated credential per workload boundary.
+3. Use subject format `system:serviceaccount:<namespace>:<service-account>` in the federated credential.
+4. Annotate the Kubernetes service account with `azure.workload.identity/client-id: <managed-identity-client-id>`.
+5. Add pod label `azure.workload.identity/use: "true"` to each workload that should be mutated by the Arc workload identity webhook.
+
+The current Mealie backup handoff in `~/git/jellylabs-dsc/infrastructure/azure/homelab/MEALIE_BACKUP_HANDOFF.md` follows this pattern.
+
+## 5. Bootstrap Flux CD
 
 ```bash
 export GITHUB_TOKEN=<your-github-pat>
@@ -103,15 +288,17 @@ flux bootstrap github \
   --personal
 ```
 
-This installs the Flux controllers, creates the GitRepository source and root Kustomization, and points Flux at `clusters/production/`. Run this from any machine with `kubectl` access to the cluster — it does not need to run on the control plane node.
+This installs the Flux controllers, creates the GitRepository source and root Kustomization, and points Flux at `clusters/production/`. Run this from any machine with `kubectl` access to the cluster. It does not need to run on the control plane node.
 
-The GitHub token requires repo write access so `flux bootstrap` can push updates to the Flux manifests in the repo. Although the repo is public (no credentials needed for ongoing reads), bootstrap needs to commit changes like Flux version bumps or URL updates. After bootstrap, Flux reads from the public repo without any token.
+The GitHub token requires repo write access so `flux bootstrap` can push updates to the Flux manifests in the repo. Although the repo is public, bootstrap needs to commit changes such as Flux version bumps or URL updates. After bootstrap, Flux reads from the public repo without any token.
 
-`flux bootstrap` is idempotent and safe to run against a repo that was previously bootstrapped. It will reconcile against the existing manifests in `clusters/production/flux-system/` and commit updates if anything has changed.
+`flux bootstrap` is idempotent and safe to run against a repo that was previously bootstrapped. It reconciles against the existing manifests in `clusters/production/flux-system/` and commits updates if anything has changed.
 
-## 5. Create the Azure Key Vault Credentials Secret
+## 6. Create the Azure Key Vault Credentials Secret
 
-External Secrets Operator authenticates to Azure Key Vault using a ServicePrincipal. This secret must exist **before** `infra-configs` reconciles, since the `ClusterSecretStore` resources reference it.
+External Secrets Operator still authenticates to Azure Key Vault with `authType: ServicePrincipal`. That means the manual `azure-creds` bootstrap secret is still required today even though Arc-backed workload identity is now available for other Azure-integrated workloads.
+
+Workload identity now replaces the need to create new per-workload Azure credential secrets for workloads such as Mealie backups, but it does **not** yet replace the `azure-creds` secret used by the current `ClusterSecretStore` resources.
 
 ```bash
 kubectl create namespace external-secrets
@@ -123,16 +310,17 @@ kubectl create secret generic azure-creds \
 ```
 
 This secret is referenced by both `ClusterSecretStore` resources:
-- `azure-kv-store` (vault: `kv-jellyhomelabprod.vault.azure.net`)
-- `azure-kv-work-integrations-store` (vault: `kv-work-integrations.vault.azure.net`)
+
+- `azure-kv-store` for `kv-jellyhomelabprod.vault.azure.net`
+- `azure-kv-work-integrations-store` for `kv-work-integrations.vault.azure.net`
 
 Both use tenant ID `3c78a8ad-6f4f-45a0-bec9-8538f870a693`.
 
-> **Important:** This is a manual bootstrap secret that cannot be managed by External Secrets itself (chicken-and-egg). Keep the credentials stored securely outside the cluster (e.g., in a password manager).
+Keep the service principal stored securely outside the cluster, such as in a password manager, until External Secrets is migrated to workload identity.
 
-## 6. Verify Flux Reconciliation
+## 7. Verify Flux Reconciliation
 
-Once the secrets are in place, Flux will begin reconciling. Monitor progress:
+Once the secrets are in place, Flux begins reconciling. Monitor progress:
 
 ```bash
 # Overall status
@@ -154,7 +342,7 @@ flux get kustomizations apps
 
 The dependency chain defined in `clusters/production/` is:
 
-```
+```text
 flux-system
   |-- infra-controllers    (cert-manager, cloudnative-pg, external-secrets, renovate)
   |     '-- infra-configs  (ClusterIssuers, ClusterSecretStores)
@@ -164,9 +352,9 @@ flux-system
         '-- apps           (audiobookshelf, linkding, actual-budget, airflow, homepage)
 ```
 
-`infra-controllers` and `monitoring-controllers` and `databases` have no inter-dependencies and will reconcile in parallel. Their downstream dependents wait until the parent is ready.
+`infra-controllers`, `monitoring-controllers`, and `databases` have no inter-dependencies and reconcile in parallel. Their downstream dependents wait until the parent is ready.
 
-## 7. Post-Bootstrap Verification
+## 8. Post-Bootstrap Verification
 
 Once all kustomizations show `Ready`:
 
@@ -201,16 +389,41 @@ kubectl events -n flux-system --for kustomization/<name>
 
 ### External secrets not syncing
 
-Check that the `azure-creds` secret exists and has correct values:
+Check that the `azure-creds` secret exists and has the expected keys:
 
 ```bash
-kubectl get secret azure-creds -n external-secrets -o jsonpath='{.data}' | jq
+kubectl get secret azure-creds -n external-secrets -o jsonpath='{.data}'
 ```
 
-Check the ClusterSecretStore status:
+Check the `ClusterSecretStore` status:
 
 ```bash
 kubectl get clustersecretstore -o yaml
+```
+
+### Arc workload identity validation
+
+Confirm the Arc cluster resource is healthy:
+
+```bash
+az connectedk8s show \
+  --name "HomelabArc" \
+  --resource-group "rg-jellyhomelab" \
+  --query '{connectivityStatus:connectivityStatus,provisioningState:provisioningState,issuer:oidcIssuerProfile.issuerUrl,workloadIdentity:securityProfile.workloadIdentity.enabled}' \
+  -o yaml
+```
+
+Confirm the Arc agents are running:
+
+```bash
+kubectl get pods -n azure-arc
+```
+
+If tokens still show the old issuer, inspect the k3s config and mint a fresh token after the restart:
+
+```bash
+sudo cat /etc/rancher/k3s/config.yaml
+kubectl create token default -n default --duration=10m
 ```
 
 ### k3s issues on the Pi
@@ -234,6 +447,9 @@ sudo systemctl restart k3s
 | Branch | `main` |
 | Flux path | `clusters/production/` |
 | Azure tenant ID | `3c78a8ad-6f4f-45a0-bec9-8538f870a693` |
+| Arc resource group | `rg-jellyhomelab` |
+| Arc location | `canadacentral` |
+| Arc connected cluster | `HomelabArc` |
 | Azure KV (primary) | `kv-jellyhomelabprod.vault.azure.net` |
 | Azure KV (work) | `kv-work-integrations.vault.azure.net` |
 | Azure creds secret | `azure-creds` in `external-secrets` namespace |
