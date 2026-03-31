@@ -6,6 +6,7 @@ resources:
   - externalsecret.yaml
   - ingress.yaml
   - certificate.yaml
+  - backup-serviceaccount.yaml
   - backup-config-configmap.yaml
   - backup-script-configmap.yaml
   - backup-cronjob.yaml

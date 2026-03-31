@@ -1,27 +1,28 @@
 ## ADDED Requirements
 
-### Requirement: Mealie backup workloads use the shared Azure workload identity contract
-The system SHALL bind Mealie backup workloads to Kubernetes service account `mealie-backup` in namespace `mealie` and SHALL annotate that service account with the Azure client ID for the pre-created Mealie user-assigned managed identity.
+### Requirement: Mealie file backups use an explicit service account for Azure federation
+The system SHALL bind the Mealie file-backup workload to Kubernetes service account `mealie-backup` in namespace `mealie` and SHALL annotate that service account with the Azure client ID for the pre-created Mealie user-assigned managed identity.
 
 #### Scenario: Service account is prepared for Azure federation
 - **WHEN** operators review the committed Mealie backup manifests
 - **THEN** a `ServiceAccount` named `mealie-backup` exists in namespace `mealie`
 - **AND** it carries annotation `azure.workload.identity/client-id`
 
-### Requirement: Mealie backup pods request Arc workload identity mutation
-The system SHALL label each Mealie backup consumer pod template with `azure.workload.identity/use: "true"` and SHALL run those consumers with `serviceAccountName: mealie-backup`.
+### Requirement: Mealie file backup pods request Arc workload identity mutation
+The system SHALL label each Mealie file-backup pod template with `azure.workload.identity/use: "true"` and SHALL run those consumers with `serviceAccountName: mealie-backup`.
 
 #### Scenario: Backup pod template is eligible for mutation
 - **WHEN** a Mealie backup workload pod template is rendered
 - **THEN** the pod template includes label `azure.workload.identity/use: "true"`
 - **AND** the pod spec sets `serviceAccountName: mealie-backup`
 
-### Requirement: Mealie database backups use workload identity instead of Blob secrets
-The system SHALL configure Mealie database backups to authenticate to Azure Blob Storage through workload identity and SHALL not require a Mealie-specific Kubernetes secret or ExternalSecret that stores Blob credentials.
+### Requirement: Mealie database backups use workload identity with the CNPG runtime subject
+The system SHALL configure Mealie database backups to authenticate to Azure Blob Storage through workload identity, SHALL not require a Mealie-specific Kubernetes secret or ExternalSecret that stores Blob credentials, and SHALL align Azure federation with the actual CNPG service account subject used at runtime.
 
 #### Scenario: Database backup configuration is secretless
 - **WHEN** operators inspect the committed Mealie database backup configuration
 - **THEN** Azure authentication uses the workload identity path
+- **AND** Azure trusts subject `system:serviceaccount:mealie:mealie-db-production-cnpg-v1`
 - **AND** no Mealie-specific Blob credential secret is required for that database backup
 
 ### Requirement: Mealie file backups use the same Azure workload identity

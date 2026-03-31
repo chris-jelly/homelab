@@ -7,7 +7,7 @@ This is the first real workload rollout on top of the Arc foundation, so it need
 ## Goals / Non-Goals
 
 **Goals:**
-- Bind Mealie backup consumers to the existing `mealie-backup` Azure workload identity contract.
+- Bind Mealie backup consumers to the existing Mealie Azure workload identity resources while matching the actual Kubernetes service account subjects used at runtime.
 - Remove the need for Mealie-specific Azure Blob credential secrets in Kubernetes and Azure Key Vault.
 - Standardize Mealie database and file backups on the `db/` and `files/` prefixes in the `mealie` blob container.
 - Update the Mealie rollout already present on `feat/deploy-mealie` rather than inventing a second manifest shape.
@@ -32,16 +32,17 @@ Rationale:
 Alternatives considered:
 - Recreate the Mealie manifests independently on `main`: unnecessary duplication and higher merge risk.
 
-### Use one Kubernetes service account for all Mealie backup consumers
-Both the database backup path and the file-backup job will bind to `ServiceAccount/mealie-backup` in namespace `mealie`.
+### Use an explicit service account for the file-backup CronJob and the CNPG-generated service account for database backups
+The `/app/data` backup CronJob will run as an explicit `ServiceAccount/mealie-backup` in namespace `mealie`. The CNPG cluster will continue to run with the operator-generated service account subject `system:serviceaccount:mealie:mealie-db-production-cnpg-v1`, and Azure will trust that second subject through an additional federated credential on the same managed identity.
 
 Rationale:
-- The Azure side already establishes one user-assigned managed identity and one federated credential subject for `system:serviceaccount:mealie:mealie-backup`.
-- One service account keeps the first rollout simple and matches the Azure handoff package.
-- It preserves the option to split identities later without changing the storage namespace.
+- Runtime inspection showed that CNPG did not create or use `ServiceAccount/mealie-backup`; it generated and used `mealie-db-production-cnpg-v1`.
+- The file-backup CronJob still benefits from a stable explicit service account name that matches the original Azure handoff contract.
+- Adding a second federated credential is lower risk than trying to force CNPG onto an unsupported or uncertain custom service account path.
 
 Alternatives considered:
-- Separate service accounts for CNPG and file backups: tighter separation, but unnecessary complexity for the first consumer rollout.
+- Force CNPG onto `ServiceAccount/mealie-backup`: appealing in theory, but inconsistent with observed CNPG runtime behavior in this cluster.
+- Separate managed identities for CNPG and file backups: tighter separation, but unnecessary complexity for the first consumer rollout.
 
 ### Require webhook mutation through the standard pod label
 Every Mealie backup workload that should receive Azure workload identity mutation will set `azure.workload.identity/use: "true"` on the pod template.
@@ -65,7 +66,7 @@ Alternatives considered:
 - Keep a temporary connection-string secret for faster rollout: easier short term, but undermines the purpose of the new identity path.
 
 ### Use `azcopy` with workload identity for the file-backup job
-The `/app/data` backup CronJob will use the same `mealie-backup` federated identity as the CNPG backup path, and the backup client will switch from Azure CLI connection-string commands to `azcopy` with workload identity support.
+The `/app/data` backup CronJob will use `ServiceAccount/mealie-backup`, and the backup client will switch from Azure CLI connection-string commands to `azcopy` with workload identity support.
 
 Rationale:
 - The user wants one federated Azure auth mechanism for all Mealie backup consumers.
@@ -82,7 +83,7 @@ If Mealie uses CloudNativePG, the backup configuration should target the latest 
 
 Rationale:
 - The Azure-side handoff explicitly points to this path.
-- It aligns the database backup consumer with the same identity model as the file-backup job.
+- It keeps CNPG on its native workload identity path while Azure trusts the actual CNPG service account subject.
 
 Alternatives considered:
 - Legacy CNPG secret-based Azure configuration: compatible with older examples, but inconsistent with the new Mealie backup contract.
@@ -101,7 +102,7 @@ Alternatives considered:
 ## Risks / Trade-offs
 
 - [Mealie manifests may not exist yet in the repo] -> Confirm the target paths early and pause if the workload deployment itself is still out of scope.
-- [CNPG and file-backup clients may need different Azure knobs] -> Keep one shared service account, but document consumer-specific wiring where the tools differ.
+- [CNPG and file-backup consumers use different service account subjects] -> Keep one managed identity, but document the two federated subjects explicitly and validate both paths separately.
 - [The first workload identity consumer may expose webhook or Azure client behavior that docs did not cover] -> Add validation steps for service account annotation, pod mutation, token claims, and Blob access before declaring rollout complete.
 - [Rollback may need to preserve backups while removing identity wiring] -> Roll back the consuming workloads first, then remove service account annotations or backup config changes without deleting Azure storage data.
 
@@ -109,11 +110,12 @@ Alternatives considered:
 
 1. Move the implementation context onto `feat/deploy-mealie` or merge that branch into the working branch before editing Mealie manifests.
 2. Add `ServiceAccount/mealie-backup` in namespace `mealie` with the Azure client ID annotation from the Terraform handoff.
-3. Update each Mealie backup consumer pod template to use `serviceAccountName: mealie-backup` and label `azure.workload.identity/use: "true"`.
-4. Replace the CNPG secret-based Azure backup config with the workload identity path and point it at `https://sthomelabbackups.blob.core.windows.net/mealie/db/`.
-5. Replace the file-backup CronJob connection-string flow with `azcopy` using workload identity auth and point it at `https://sthomelabbackups.blob.core.windows.net/mealie/files/`.
-6. Remove no-longer-needed Mealie backup credential secrets or ExternalSecrets.
-7. Validate pod mutation, fresh token claims, and Blob access for the Mealie backup consumers.
+3. Update the file-backup CronJob pod template to use `serviceAccountName: mealie-backup` and label `azure.workload.identity/use: "true"`.
+4. Keep the CNPG cluster on the operator-generated service account subject and add an Azure federated credential for `system:serviceaccount:mealie:mealie-db-production-cnpg-v1`.
+5. Replace the CNPG secret-based Azure backup config with the workload identity path and point it at `https://sthomelabbackups.blob.core.windows.net/mealie/db/`.
+6. Replace the file-backup CronJob connection-string flow with `azcopy` using workload identity auth and point it at `https://sthomelabbackups.blob.core.windows.net/mealie/files/`.
+7. Remove no-longer-needed Mealie backup credential secrets or ExternalSecrets.
+8. Validate the CronJob and CNPG paths separately by checking their effective service account subjects and Blob authentication behavior.
 
 Rollback strategy:
 - Revert the Mealie service account annotation, pod labels, and backup configuration first.
@@ -122,4 +124,4 @@ Rollback strategy:
 
 ## Open Questions
 
-- None at this time.
+- None at this time. The remaining work is implementation and validation of the corrected two-subject Azure federation model.

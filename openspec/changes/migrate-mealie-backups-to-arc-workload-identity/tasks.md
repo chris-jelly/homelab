@@ -5,8 +5,8 @@
 
 ## 2. Wire Kubernetes workload identity
 
-- [x] 2.1 Add `ServiceAccount/mealie-backup` in namespace `mealie` with the Azure client ID annotation from the Terraform handoff.
-- [x] 2.2 Update each Mealie backup consumer pod template to use `serviceAccountName: mealie-backup` and label `azure.workload.identity/use: "true"`.
+- [x] 2.1 Add an explicit `ServiceAccount/mealie-backup` in namespace `mealie` with the Azure client ID annotation from the Terraform handoff.
+- [x] 2.2 Update the file-backup CronJob pod template to use `serviceAccountName: mealie-backup` and label `azure.workload.identity/use: "true"`.
 
 ## 3. Migrate backup consumers off Blob secrets
 
@@ -16,5 +16,11 @@
 
 ## 4. Validate and document rollout
 
-- [x] 4.1 Document the Mealie-specific validation steps for service account annotation, pod mutation, token claims, and Blob access.
-- [x] 4.2 Document the rollback path for the Mealie consumer rollout if workload identity wiring or Blob access fails.
+- [x] 4.1 Update the Mealie validation steps to distinguish the CronJob service account subject from the CNPG runtime service account subject and confirm both are trusted by Azure.
+- [x] 4.2 Document the rollback path for the corrected two-subject workload identity model if Blob access fails.
+
+## 5. Align Azure federation with runtime subjects
+
+- [ ] 5.1 Update the Azure/Terraform handoff so the Mealie managed identity trusts `system:serviceaccount:mealie:mealie-backup` for the file-backup CronJob.
+- [ ] 5.2 Add a second federated credential for `system:serviceaccount:mealie:mealie-db-production-cnpg-v1` so CNPG WAL archiving and backups can authenticate.
+- [ ] 5.3 Validate that the file-backup CronJob starts successfully and that CNPG `ContinuousArchiving` becomes healthy after the Azure change lands.
