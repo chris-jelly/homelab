@@ -3,3 +3,4 @@
 kubeconfig.yaml
 *.agekey
 config.yaml
+.pi
