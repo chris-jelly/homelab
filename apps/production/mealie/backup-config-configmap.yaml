@@ -10,7 +10,6 @@ metadata:
 data:
   AZCOPY_AUTO_LOGIN_TYPE: "WORKLOAD"
   AZCOPY_JOB_PLAN_LOCATION: "/tmp/azcopy-plans"
-  BACKUP_RETENTION_COUNT: "8"
   BACKUP_PREFIX: "mealie-app-data-backup"
   BACKUP_DESTINATION_URL: "https://sthomelabbackups.blob.core.windows.net/mealie/files"
   AZCOPY_LOG_LOCATION: "/tmp/azcopy-logs"

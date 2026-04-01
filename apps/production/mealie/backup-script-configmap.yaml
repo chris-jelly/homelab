@@ -34,63 +34,7 @@ data:
 
     echo "Upload successful: ${BACKUP_FILE}"
 
-    echo "Cleaning up old backups (keeping last ${BACKUP_RETENTION_COUNT})..."
-    LIST_OUTPUT="/tmp/azcopy-list.jsonl"
-    PRUNE_LIST="/tmp/azcopy-prune-list.txt"
-
-    azcopy list "${BACKUP_DESTINATION_URL}" \
-      --properties "LastModifiedTime" \
-      --machine-readable \
-      --output-type json > "${LIST_OUTPUT}"
-
-    python3 - <<'PY' > "${PRUNE_LIST}"
-    import json
-    import os
-
-    backup_prefix = os.environ["BACKUP_PREFIX"] + "-"
-    keep = int(os.environ["BACKUP_RETENTION_COUNT"])
-    list_output = "/tmp/azcopy-list.jsonl"
-
-    entries = []
-    with open(list_output, encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            outer = json.loads(line)
-            if outer.get("MessageType") != "ListObject":
-                continue
-            inner = json.loads(outer["MessageContent"])
-            path = inner.get("Path", "")
-            name = path.rsplit("/", 1)[-1]
-            if not name.startswith(backup_prefix):
-                continue
-            entries.append((inner.get("LastModifiedTime", ""), path))
-
-    entries.sort(reverse=True)
-    for _, path in entries[keep:]:
-        print(path)
-    PY
-
-    if [ -s "${PRUNE_LIST}" ]; then
-      while read -r OLD_BACKUP; do
-        if [ -n "${OLD_BACKUP}" ]; then
-          echo "Deleting old backup: ${OLD_BACKUP}"
-        fi
-      done < "${PRUNE_LIST}"
-
-      azcopy remove "${BACKUP_DESTINATION_URL}" \
-        --recursive=true \
-        --list-of-files "${PRUNE_LIST}"
-    fi
-
-    echo ""
-    echo "Current backups in storage:"
-    azcopy list "${BACKUP_DESTINATION_URL}" \
-      --properties "LastModifiedTime" \
-      --machine-readable
-
-    rm -f "${TEMP_BACKUP}" "${LIST_OUTPUT}" "${PRUNE_LIST}"
+    rm -f "${TEMP_BACKUP}"
 
     echo ""
     echo "========================================="

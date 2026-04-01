@@ -52,6 +52,10 @@ If the image needs to change, update it in `homelab-images` and publish a new im
 
 The CronJob expects AzCopy `10.25.1` or later so `AZCOPY_AUTO_LOGIN_TYPE=WORKLOAD` works with Arc workload identity.
 
+Runtime assumptions for the published backup image live in `apps/production/mealie/BACKUP_IMAGE_HANDOFF.md`.
+
+Azure retention policy handoff for `jellylabs-dsc` lives in `apps/production/mealie/BACKUP_RETENTION_TERRAFORM_HANDOFF.md`. That policy should delete `mealie/files/` backups after about 60 days so retention stays close to the old eight-backup target without in-job prune logic.
+
 ### Azure Key Vault prerequisites
 
 Vault: `kv-jellyhomelabprod`
@@ -146,10 +150,12 @@ The CNPG pod should still show service account `mealie-db-production-cnpg-v1` ev
 
 ```bash
 kubectl get externalsecret -n mealie
-kubectl logs -n mealie job/$(kubectl get jobs -n mealie -o name | grep mealie-backup-manual | tail -n 1 | cut -d/ -f2) | grep -E 'Upload successful|Deleting old backup|Current backups'
+kubectl logs -n mealie job/$(kubectl get jobs -n mealie -o name | grep mealie-backup-manual | tail -n 1 | cut -d/ -f2) | grep -E 'Upload successful|Backup completed successfully'
 ```
 
 The `mealie` namespace should no longer contain `mealie-backup-secrets` or `cnpg-azure-backup-creds`.
+
+The file-backup job should upload only. Retention for `mealie/files/` should be enforced by Azure Blob lifecycle management instead of in-job prune logic.
 
 10. Confirm CNPG workload identity is healthy after the Azure-side federated credential update:
 
