@@ -2,7 +2,7 @@
 
 ## External prerequisites
 
-This repository does not manage Azure storage resources, Azure Key Vault secret values, or Cloudflare DNS records directly.
+This repository does not manage Azure storage resources, Azure Key Vault secret values, or DNS records directly.
 
 ### Azure backup placement
 
@@ -54,6 +54,8 @@ The CronJob expects AzCopy `10.25.1` or later so `AZCOPY_AUTO_LOGIN_TYPE=WORKLOA
 
 Runtime assumptions for the published backup image live in `apps/production/mealie/BACKUP_IMAGE_HANDOFF.md`.
 
+Azure workload identity handoff for `jellylabs-dsc` lives in `apps/production/mealie/BACKUP_IDENTITY_TERRAFORM_HANDOFF.md`.
+
 Azure retention policy handoff for `jellylabs-dsc` lives in `apps/production/mealie/BACKUP_RETENTION_TERRAFORM_HANDOFF.md`. That policy should delete `mealie/files/` backups after about 60 days so retention stays close to the old eight-backup target without in-job prune logic.
 
 ### Azure Key Vault prerequisites
@@ -64,11 +66,11 @@ Create or confirm these secret names:
 
 - `secret/mealie-openai-api-key` = Mealie OpenAI API key
 
-### DNS prerequisite
+### DNS and ingress prerequisite
 
-- Create or confirm `mealie.jellylabs.xyz` in Cloudflare pointing at the shared tunnel target
+The manifests use hostname `mealie.jellylabs.xyz`, but this app is intended for internal use.
 
-This repo already expects Traefik to terminate app routing based on the ingress hostname.
+Create or confirm a DNS path that resolves `mealie.jellylabs.xyz` only for trusted clients on your internal network, VPN, or other private access path. Do **not** publish this hostname on the public internet unless you are intentionally changing the exposure model.
 
 ## Rollout validation
 
@@ -95,18 +97,20 @@ kubectl get ingress -n mealie mealie -o jsonpath='{.metadata.annotations.gethome
 kubectl get ingress -n mealie mealie -o jsonpath='{.metadata.annotations.gethomepage\.dev/pod-selector}{"\n"}'
 ```
 
-4. Verify the app responds locally before testing through the public hostname:
+4. Verify the app responds locally before testing hostname-based access:
 
 ```bash
 kubectl port-forward -n mealie svc/mealie 9000:9000
 curl -I http://127.0.0.1:9000/
 ```
 
-5. Verify the public hostname after DNS propagation:
+5. Verify the internal hostname path after private DNS propagation or equivalent routing setup:
 
 ```bash
 curl -I https://mealie.jellylabs.xyz
 ```
+
+Run this from a client that should have internal access. A successful response should depend on your private access path, not public internet exposure.
 
 6. Verify workload identity wiring and scheduled backup resources exist:
 
@@ -166,6 +170,14 @@ kubectl logs -n mealie $(kubectl get pod -n mealie -l cnpg.io/cluster=mealie-db-
 ```
 
 Success means the `ContinuousArchiving` condition becomes healthy and the CNPG logs stop reporting the federated subject mismatch.
+
+## Validation snapshot
+
+Validation run on 2026-04-03 after the two-subject Azure federation update:
+
+- Manual CronJob run `mealie-backup-manual-1775181347` completed successfully.
+- AzCopy reported `Login with Workload Identity succeeded` and `Final Job Status: Completed`.
+- `Cluster/mealie-db-production-cnpg-v1` reported `ContinuousArchiving=True` with message `Continuous archiving is working`.
 
 ## Recovery drill notes
 

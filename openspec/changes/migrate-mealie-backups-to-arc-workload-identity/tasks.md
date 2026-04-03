@@ -21,6 +21,6 @@
 
 ## 5. Align Azure federation with runtime subjects
 
-- [ ] 5.1 Update the Azure/Terraform handoff so the Mealie managed identity trusts `system:serviceaccount:mealie:mealie-backup` for the file-backup CronJob.
-- [ ] 5.2 Add a second federated credential for `system:serviceaccount:mealie:mealie-db-production-cnpg-v1` so CNPG WAL archiving and backups can authenticate.
-- [ ] 5.3 Validate that the file-backup CronJob starts successfully and that CNPG `ContinuousArchiving` becomes healthy after the Azure change lands.
+- [x] 5.1 Update the Azure/Terraform handoff so the Mealie managed identity trusts `system:serviceaccount:mealie:mealie-backup` for the file-backup CronJob.
+- [x] 5.2 Add a second federated credential for `system:serviceaccount:mealie:mealie-db-production-cnpg-v1` so CNPG WAL archiving and backups can authenticate.
+- [x] 5.3 Validate that the file-backup CronJob starts successfully and that CNPG `ContinuousArchiving` becomes healthy after the Azure change lands.
