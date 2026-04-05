@@ -26,7 +26,7 @@ All CNPG clusters run single-instance with no backup configuration, no WAL archi
 1. All CNPG databases continuously archive WAL to Azure Blob Storage and take scheduled base backups, enabling point-in-time recovery (PITR)
 2. CNPG clusters can bootstrap from their Azure backup on a fresh cluster rebuild
 3. File-based apps (Audiobookshelf, Linkding) have scheduled backups to Azure Blob Storage
-4. Actual Budget's existing backup pattern is the template for other file-based backups
+4. Actual Budget's existing archive-and-prune pattern is the template for other file-based backups
 5. Backups remain focused on production data paths
 
 ## Strategy
@@ -50,8 +50,10 @@ For apps that use embedded SQLite or file-based storage, follow the pattern alre
 
 - A CronJob mounts the app's PVC read-only
 - A bash script creates a timestamped `.tar.gz` archive
-- The archive is uploaded to Azure Blob Storage via `az storage blob upload`
+- The archive is uploaded to Azure Blob Storage
 - Old backups are pruned to retain only the last N copies
+
+ActualBudget now authenticates to Blob Storage with Azure workload identity and container-scoped RBAC instead of a Key Vault-sourced storage connection string. Reuse the archive layout and retention approach for future apps, but choose the Azure auth path deliberately per workload.
 
 This applies to:
 - Audiobookshelf (config + metadata PVCs — media files are likely replaceable and very large, so only back up config/metadata)
@@ -67,7 +69,7 @@ Restore is manual: download the archive from Azure Blob, extract into the PVC.
 
 CNPG authenticates to Azure Blob Storage independently from External Secrets Operator. A secret with the storage account connection string or SAS token needs to exist in each database namespace.
 
-Use an `ExternalSecret` to pull the Azure Storage credentials from Key Vault (the same pattern as Actual Budget's `backup-externalsecret.yaml`):
+Use an `ExternalSecret` to pull the Azure Storage credentials from Key Vault for workloads that still need connection-string or key-based auth:
 
 ```yaml
 apiVersion: external-secrets.io/v1
@@ -235,13 +237,13 @@ Before any of the above works, the following secrets need to exist in Azure Key 
 | `linkding-backup-connection-string` | Linkding backup ExternalSecret | Azure Storage connection string |
 | `audiobookshelf-backup-connection-string` | Audiobookshelf backup ExternalSecret | Azure Storage connection string |
 
-The Actual Budget backup already uses `actualbudget-backup-connection-string` from the same vault.
+The ActualBudget backup no longer uses a Key Vault connection string. It authenticates directly to the `actualbudget` container in `sthomelabbackups` with workload identity.
 
 Also create the Azure Blob Storage containers:
 - `cnpg-backups` (with virtual directories per database)
 - `linkding-backups`
 - `audiobookshelf-backups`
-- `actualbudget-backups` (already exists)
+- `actualbudget` (already exists)
 
 ## File Changes Summary
 

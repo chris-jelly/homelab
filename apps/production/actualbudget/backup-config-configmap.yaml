@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/component: backup
     app.kubernetes.io/part-of: homelab
 data:
-  CONTAINER_NAME: "actualbudget-backups"
+  STORAGE_ACCOUNT_NAME: "sthomelabbackups"
+  CONTAINER_NAME: "actualbudget"
   BACKUP_RETENTION_COUNT: "8"
   BACKUP_PREFIX: "actualbudget-backup"

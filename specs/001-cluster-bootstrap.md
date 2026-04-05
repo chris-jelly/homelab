@@ -294,33 +294,28 @@ The GitHub token requires repo write access so `flux bootstrap` can push updates
 
 `flux bootstrap` is idempotent and safe to run against a repo that was previously bootstrapped. It reconciles against the existing manifests in `clusters/production/flux-system/` and commits updates if anything has changed.
 
-## 6. Create the Azure Key Vault Credentials Secret
+## 6. Prepare External Secrets Operator Key Vault access
 
-External Secrets Operator still authenticates to Azure Key Vault with `authType: ServicePrincipal`. That means the manual `azure-creds` bootstrap secret is still required today even though Arc-backed workload identity is now available for other Azure-integrated workloads.
+External Secrets Operator now authenticates to `kv-jellyhomelabprod` with `authType: WorkloadIdentity` through a referenced service account instead of the old `azure-creds` bootstrap secret.
 
-Workload identity now replaces the need to create new per-workload Azure credential secrets for workloads such as Mealie backups, but it does **not** yet replace the `azure-creds` secret used by the current `ClusterSecretStore` resources.
+Before expecting Key Vault-backed `ExternalSecret` reconciliation to succeed, make sure the Azure workload identity prerequisites are already in place:
 
-```bash
-kubectl create namespace external-secrets
+1. Arc workload identity is enabled and the cluster issuer URL is stable.
+2. `~/git/jellylabs-dsc/infrastructure/azure/homelab/` has been applied with the current `kubernetes_oidc_issuer_url`.
+3. The Azure stack created the federated credential for subject `system:serviceaccount:external-secrets:azure-kv-store-reader` and granted that identity `Key Vault Secrets User` on `kv-jellyhomelabprod`.
 
-kubectl create secret generic azure-creds \
-  --namespace=external-secrets \
-  --from-literal=ClientID=<AZURE_SP_CLIENT_ID> \
-  --from-literal=ClientSecret=<AZURE_SP_CLIENT_SECRET>
-```
+The GitOps-managed `ClusterSecretStore` uses this referenced service account contract:
 
-This secret is referenced by both `ClusterSecretStore` resources:
+- Store: `ClusterSecretStore/azure-kv-store`
+- Vault: `https://kv-jellyhomelabprod.vault.azure.net/`
+- Auth type: `WorkloadIdentity`
+- Referenced service account: `ServiceAccount/azure-kv-store-reader` in namespace `external-secrets`
 
-- `azure-kv-store` for `kv-jellyhomelabprod.vault.azure.net`
-- `azure-kv-work-integrations-store` for `kv-work-integrations.vault.azure.net`
-
-Both use tenant ID `3c78a8ad-6f4f-45a0-bec9-8538f870a693`.
-
-Keep the service principal stored securely outside the cluster, such as in a password manager, until External Secrets is migrated to workload identity.
+There is no longer a supported bootstrap step that creates `Secret/azure-creds` in the cluster for External Secrets Operator.
 
 ## 7. Verify Flux Reconciliation
 
-Once the secrets are in place, Flux begins reconciling. Monitor progress:
+Once Flux is bootstrapped and the Azure workload identity prerequisites are ready, reconciliation should proceed. Monitor progress:
 
 ```bash
 # Overall status
@@ -389,17 +384,25 @@ kubectl events -n flux-system --for kustomization/<name>
 
 ### External secrets not syncing
 
-Check that the `azure-creds` secret exists and has the expected keys:
+Check the referenced service account annotation:
 
 ```bash
-kubectl get secret azure-creds -n external-secrets -o jsonpath='{.data}'
+kubectl get serviceaccount azure-kv-store-reader -n external-secrets -o yaml
 ```
 
 Check the `ClusterSecretStore` status:
 
 ```bash
-kubectl get clustersecretstore -o yaml
+kubectl get clustersecretstore azure-kv-store -o yaml
 ```
+
+If the store is not ready, confirm the referenced service account subject matches Azure exactly:
+
+```text
+system:serviceaccount:external-secrets:azure-kv-store-reader
+```
+
+Also confirm the backing Azure identity still has `Key Vault Secrets User` on `kv-jellyhomelabprod`.
 
 ### Arc workload identity validation
 
@@ -451,5 +454,4 @@ sudo systemctl restart k3s
 | Arc location | `canadacentral` |
 | Arc connected cluster | `HomelabArc` |
 | Azure KV (primary) | `kv-jellyhomelabprod.vault.azure.net` |
-| Azure KV (work) | `kv-work-integrations.vault.azure.net` |
-| Azure creds secret | `azure-creds` in `external-secrets` namespace |
+| ESO Key Vault auth | `WorkloadIdentity` via `ServiceAccount/azure-kv-store-reader` |

@@ -26,6 +26,14 @@ data:
     BACKUP_FILE="${BACKUP_PREFIX}-${TIMESTAMP}.tar.gz"
     TEMP_BACKUP="/tmp/${BACKUP_FILE}"
 
+    echo "Logging into Azure with workload identity..."
+    az login \
+      --service-principal \
+      --username "${AZURE_CLIENT_ID}" \
+      --tenant "${AZURE_TENANT_ID}" \
+      --federated-token "$(cat "${AZURE_FEDERATED_TOKEN_FILE}")" \
+      --allow-no-subscriptions >/dev/null
+
     # Step 1: Create compressed archive
     echo "Creating compressed archive of /data..."
     cd /data
@@ -38,7 +46,8 @@ data:
     # Step 2: Upload to Azure Blob Storage
     echo "Uploading backup to Azure Blob Storage..."
     az storage blob upload \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
+      --auth-mode login \
+      --account-name "${STORAGE_ACCOUNT_NAME}" \
       --container-name "${CONTAINER_NAME}" \
       --file "${TEMP_BACKUP}" \
       --name "${BACKUP_FILE}" \
@@ -51,7 +60,8 @@ data:
 
     # List all backups, sort by name (timestamp based), get all except last N
     az storage blob list \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
+      --auth-mode login \
+      --account-name "${STORAGE_ACCOUNT_NAME}" \
       --container-name "${CONTAINER_NAME}" \
       --prefix "${BACKUP_PREFIX}-" \
       --query "[].name" \
@@ -62,7 +72,8 @@ data:
       if [ -n "$OLD_BACKUP" ]; then
         echo "Deleting old backup: ${OLD_BACKUP}"
         az storage blob delete \
-          --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
+          --auth-mode login \
+          --account-name "${STORAGE_ACCOUNT_NAME}" \
           --container-name "${CONTAINER_NAME}" \
           --name "${OLD_BACKUP}"
       fi
@@ -72,7 +83,8 @@ data:
     echo ""
     echo "Current backups in storage:"
     az storage blob list \
-      --connection-string "${AZURE_STORAGE_CONNECTION_STRING}" \
+      --auth-mode login \
+      --account-name "${STORAGE_ACCOUNT_NAME}" \
       --container-name "${CONTAINER_NAME}" \
       --prefix "${BACKUP_PREFIX}-" \
       --query "[].{Name:name, Size:properties.contentLength, Modified:properties.lastModified}" \

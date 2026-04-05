@@ -20,8 +20,10 @@ spec:
           labels:
             app.kubernetes.io/name: actualbudget
             app.kubernetes.io/component: backup
+            azure.workload.identity/use: "true"
         spec:
           restartPolicy: Never
+          serviceAccountName: actualbudget-backup
 
           # Security context - fsGroup for PVC access
           securityContext:
@@ -31,12 +33,10 @@ spec:
             - name: backup
               image: mcr.microsoft.com/azure-cli:latest
 
-              # Environment variables from ConfigMap and Secret
+              # Environment variables from ConfigMap
               envFrom:
                 - configMapRef:
                     name: actualbudget-backup-config
-                - secretRef:
-                    name: actualbudget-backup-secrets
 
               # Resource limits
               resources:
@@ -47,7 +47,7 @@ spec:
                   memory: "512Mi"
                   cpu: "500m"
 
-              # Security context - run as root to install tools via apk
+              # Security context - run as root to install tools in the container image
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
