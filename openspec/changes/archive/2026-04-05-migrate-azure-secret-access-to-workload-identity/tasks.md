@@ -20,5 +20,5 @@
 
 - [x] 4.1 [homelab] Update `specs/001-cluster-bootstrap.md` to remove the `azure-creds` bootstrap step and document the referenced-service-account ESO workload identity pattern using the fixed service account name `azure-kv-store-reader`.
 - [x] 4.2 [homelab] Update runbooks and handoff docs to remove `kv-work-integrations` references and document the new ActualBudget backup auth path.
-- [ ] 4.3 [both] Validate representative Key Vault-backed `ExternalSecret` reconciliations, the Airflow Salesforce connection secret, and a manual ActualBudget backup run after the migration.
-- [ ] 4.4 [dsc] Remove the no-longer-needed app registration / Service Principal path for `azure-creds`, then remove `kv-work-integrations` and `rg-work-integrations` from `jellylabs-dsc` after the new primary-vault and workload identity paths are confirmed healthy.
+- [x] 4.3 [both] Validate representative Key Vault-backed `ExternalSecret` reconciliations, the Airflow Salesforce connection secret, and a manual ActualBudget backup run after the migration.
+- [x] 4.4 [dsc] Remove the no-longer-needed app registration / Service Principal path for `azure-creds`, then remove `kv-work-integrations` and `rg-work-integrations` from `jellylabs-dsc` after the new primary-vault and workload identity paths are confirmed healthy.

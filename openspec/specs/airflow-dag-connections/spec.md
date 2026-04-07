@@ -1,3 +1,6 @@
+## Purpose
+Define the Airflow connection secrets that must be rendered from Azure Key Vault so DAGs can reach warehouse and Salesforce integrations with stable secret contracts.
+
 ## Requirements
 
 ### Requirement: Warehouse PostgreSQL connection secret
@@ -16,7 +19,7 @@ The system SHALL provision a Kubernetes Secret named `warehouse-postgres-conn` i
 - **THEN** `secretStoreRef` references `azure-kv-store` ClusterSecretStore
 
 ### Requirement: Salesforce connection secret
-The system SHALL provision a Kubernetes Secret named `salesforce-conn` in the `airflow` namespace via an ExternalSecret. The secret SHALL contain a single key `AIRFLOW_CONN_SALESFORCE` with a JSON blob for the Airflow Salesforce provider's JWT Bearer OAuth flow. The ExternalSecret SHALL use the `azure-kv-work-integrations-store` ClusterSecretStore.
+The system SHALL provision a Kubernetes Secret named `salesforce-conn` in the `airflow` namespace via an ExternalSecret. The secret SHALL contain a single key `AIRFLOW_CONN_SALESFORCE` with a JSON blob for the Airflow Salesforce provider's JWT Bearer OAuth flow. The ExternalSecret SHALL use the `azure-kv-store` ClusterSecretStore.
 
 #### Scenario: ExternalSecret creates the Salesforce connection secret
 - **WHEN** the ExternalSecret `salesforce-conn` reconciles
@@ -32,7 +35,7 @@ The system SHALL provision a Kubernetes Secret named `salesforce-conn` in the `a
 
 #### Scenario: Secret store reference is correct
 - **WHEN** the ExternalSecret manifest is applied
-- **THEN** `secretStoreRef` references `azure-kv-work-integrations-store` ClusterSecretStore
+- **THEN** `secretStoreRef` references `azure-kv-store` ClusterSecretStore
 
 ### Requirement: ExternalSecret refresh interval
 All connection ExternalSecrets SHALL use a `refreshInterval` of `1h` to sync changes from Azure Key Vault.
@@ -56,7 +59,7 @@ Before the `salesforce-conn` ExternalSecret can produce a functional connection,
 3. A dedicated integration user SHALL be created using the `Salesforce` license (full) and `Read Only` profile, with username `airflow-integration@orgfarm-d58c800d67-dev-ed.develop.my.salesforce.com`. Note: the `Salesforce Integration` license was evaluated but does not permit access to standard CRM objects.
 4. The `Integration_App_Access` permission set SHALL be populated with ViewAll on: Account, Contact, Opportunity, Lead, Case, Campaign; and Read on: Product2, Pricebook2. OpportunityHistory, PricebookEntry, and User are not directly permissionable.
 5. The permission set SHALL be assigned to the integration user (which also pre-authorizes them for the Connected App)
-6. The RSA private key SHALL be stored in Azure Key Vault (`kv-work-integrations`) as secret `app--salesforce-private-key--prod`
+6. The RSA private key SHALL be stored in Azure Key Vault (`kv-jellyhomelabprod`) as secret `app--salesforce-private-key--prod`
 
 #### Scenario: JWT Bearer flow is testable after prerequisites
 - **WHEN** all six prerequisites are completed
