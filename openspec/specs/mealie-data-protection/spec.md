@@ -28,18 +28,47 @@ The operational model SHALL treat CNPG recovery as the primary database recovery
 - **THEN** the CNPG cluster resources support recovery from CNPG-managed backups
 - **AND** the `/app/data` backup resources support restoring application filesystem data without depending on Mealie's built-in export alone
 
-### Requirement: Mealie backup integrations use workload identity
-The Mealie database backup flow and `/app/data` archive job SHALL authenticate to Azure Blob Storage through Kubernetes workload identity.
+### Requirement: Mealie file backups use an explicit service account for Azure federation
+The system SHALL bind the Mealie file-backup workload to Kubernetes service account `mealie-backup` in namespace `mealie` and SHALL annotate that service account with the Azure client ID for the pre-created Mealie user-assigned managed identity.
 
-#### Scenario: Azure backup identity is not committed to git
-- **WHEN** the Mealie backup manifests are applied
-- **THEN** backup jobs and CNPG backup configuration reference the dedicated `mealie-backup` service account and workload identity settings
-- **AND** the repository does not contain plaintext Azure backup credentials, storage keys, or backup connection strings
+#### Scenario: Service account is prepared for Azure federation
+- **WHEN** operators review the committed Mealie backup manifests
+- **THEN** a `ServiceAccount` named `mealie-backup` exists in namespace `mealie`
+- **AND** it carries annotation `azure.workload.identity/client-id`
 
-#### Scenario: Workload identity contract matches the Azure handoff
-- **WHEN** operators wire the Mealie backup identity into the cluster
-- **THEN** the Kubernetes service account subject is `system:serviceaccount:mealie:mealie-backup`
-- **AND** the Azure identity contract uses the `id-mealie-backup` managed identity and `fic-mealie-backup` federated credential
+### Requirement: Mealie file backup pods request Arc workload identity mutation
+The system SHALL label each Mealie file-backup pod template with `azure.workload.identity/use: "true"` and SHALL run those consumers with `serviceAccountName: mealie-backup`.
+
+#### Scenario: Backup pod template is eligible for mutation
+- **WHEN** a Mealie backup workload pod template is rendered
+- **THEN** the pod template includes label `azure.workload.identity/use: "true"`
+- **AND** the pod spec sets `serviceAccountName: mealie-backup`
+
+### Requirement: Mealie database backups use workload identity with the CNPG runtime subject
+The system SHALL configure Mealie database backups to authenticate to Azure Blob Storage through workload identity, SHALL not require a Mealie-specific Kubernetes secret or ExternalSecret that stores Blob credentials, and SHALL align Azure federation with the actual CNPG service account subject used at runtime.
+
+#### Scenario: Database backup configuration is secretless
+- **WHEN** operators inspect the committed Mealie database backup configuration
+- **THEN** Azure authentication uses the workload identity path
+- **AND** Azure trusts subject `system:serviceaccount:mealie:mealie-db-production-cnpg-v1`
+- **AND** no Mealie-specific Blob credential secret is required for that database backup
+
+### Requirement: Mealie file backups use the same Azure workload identity
+The system SHALL configure the Mealie file-backup consumer to use the `mealie-backup` service account, SHALL authenticate to Azure Blob through workload identity-aware `azcopy` configuration, and SHALL write backup artifacts to the `files/` prefix inside the `mealie` blob container.
+
+#### Scenario: File backup targets the Mealie files prefix
+- **WHEN** operators inspect the committed Mealie file-backup configuration
+- **THEN** the workload runs as `mealie-backup`
+- **AND** the backup client is configured for workload identity instead of a connection string
+- **AND** the Azure Blob destination resolves under `https://sthomelabbackups.blob.core.windows.net/mealie/files/`
+
+### Requirement: Mealie backup rollout includes validation guidance
+The system SHALL document how to validate that the Mealie backup consumer was mutated for workload identity and can reach the intended Azure Blob destination.
+
+#### Scenario: Operators can validate the first consumer rollout
+- **WHEN** operators follow the Mealie backup rollout guidance
+- **THEN** they can verify the service account annotation, pod label, and effective service account on the running backup workload
+- **AND** they can confirm that the backup workload can authenticate to the `mealie` blob container without a stored Azure credential secret
 
 ### Requirement: Mealie backups use the shared homelab Azure backup account layout
 The Mealie backup design SHALL place CNPG and `/app/data` backups in the shared homelab Azure backup storage account located in `rg-jellyhomelab`, using the `mealie` container with `db/` and `files/` prefixes.
